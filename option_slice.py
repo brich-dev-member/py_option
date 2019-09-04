@@ -1,7 +1,7 @@
 from openpyxl import load_workbook
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from itertools import permutations, chain
+from itertools import permutations, combinations_with_replacement
 
 Tk().withdraw()
 filename = askopenfilename()
@@ -31,7 +31,7 @@ for row in iter_row:
         color.append(["ONE COLOR"])
     elif row[5].value == "원플러스":
         colors = colorOption.split(',')
-        colorsPermutaions = list(permutations(colors, 2))
+        colorsPermutaions = list(combinations_with_replacement(colors, 2))
         onePluseList = list()
         for colorChain in colorsPermutaions:
             first = colorChain[0]
