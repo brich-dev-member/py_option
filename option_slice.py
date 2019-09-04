@@ -63,11 +63,12 @@ for optionList in optionLists:
         color = colorLists[colorList]
         for sizeList in range(len(sizeLists)):
             size = sizeLists[sizeList]
-            total = color + "_" + size
+            # total = color + "_" + size
             lastLists.append(no)
             lastLists.append(product)
             lastLists.append(priceLists)
-            lastLists.append(total)
+            lastLists.append(color)
+            lastLists.append(size)
 
 
 def chunker(seq, size):
@@ -76,18 +77,22 @@ def chunker(seq, size):
 
 no = 0
 
-for group in chunker(lastLists, 4):
+for group in chunker(lastLists, 5):
     no += 1
     print(group)
     iNo = group[0]
     iProduct = group[1]
     iPrice = group[2]
-    iTotal = group[3]
+    # iTotal = group[3]
+    iColor = group[3]
+    iSize = group[4]
 
     wa.cell(row=no, column=1).value = iNo
     wa.cell(row=no, column=2).value = iProduct
     wa.cell(row=no, column=3).value = iPrice
-    wa.cell(row=no, column=4).value = iTotal
+    # wa.cell(row=no, column=4).value = iTotal
+    wa.cell(row=no, column=4).value = iColor
+    wa.cell(row=no, column=5).value = iSize
 
 
 wb.save(path)
