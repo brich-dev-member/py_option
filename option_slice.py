@@ -1,6 +1,7 @@
 from openpyxl import load_workbook
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from itertools import permutations, chain
 
 Tk().withdraw()
 filename = askopenfilename()
@@ -28,13 +29,26 @@ for row in iter_row:
     colorOption = row[3].value
     if colorOption == "ONE COLOR":
         color.append(["ONE COLOR"])
+    elif row[5].value == "원플러스":
+        colors = colorOption.split(',')
+        colorsPermutaions = list(permutations(colors, 2))
+        onePluseList = list()
+        for colorChain in colorsPermutaions:
+            first = colorChain[0]
+            secound = colorChain[1]
+            sumColor = first + "+" + secound
+            onePluseList.append(sumColor)
+        # colorChain = list(chain(*colorsPermutaions))
+        color.append(onePluseList)
+        print(onePluseList)
     else:
         colors = colorOption.split(',')
-    color.append(colors)
+        color.append(colors)
 
     sizeOption = row[4].value
     sizes = sizeOption.split(',')
     size.append(sizes)
+
 
 optionLists = list(zip(no, name, price, color, size))
 lastLists = list()
