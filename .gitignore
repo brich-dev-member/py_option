@@ -2,3 +2,17 @@
 *.spec
 build/
 dist/
+.gitignore
+inspectionProfiles/
+misc.xml
+modules.xml
+py_option.iml
+vcs.xml
+.DS_Store
+.idea/.gitignore
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/py_option.iml
+.idea/vcs.xml
+__pycache__/
