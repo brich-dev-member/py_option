@@ -1,14 +1,14 @@
 from flask import Flask, render_template, redirect, request, send_file
 import openpyxl
 from itertools import permutations, combinations_with_replacement
-
+from datetime import datetime
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def hello_world():
-    return 'hello world'
+    return render_template('main.html')
 
 
 @app.route('/option')
@@ -104,10 +104,16 @@ def option_slice():
             wa.cell(row=no, column=4).value = iColor
             wa.cell(row=no, column=5).value = iSize
 
-        result = filename
+        makeToday = datetime.today()
+        now = makeToday.strftime("%m%d_%H%M")
+        result = filename[0:filename.find('.')] + "_" + now + ".xlsx"
         wb.save(result)
         print(result)
-        return send_file(result,as_attachment=True, attachment_filename=excel_file.filename, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        return send_file(
+            result,
+            as_attachment=True,
+            attachment_filename=result, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     else:
         return redirect('/option')
 
