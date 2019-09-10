@@ -58,7 +58,7 @@ def option_slice():
                 colors = colorOption.split(',')
                 color.append(colors)
 
-            sizeOption = row[4].value
+            sizeOption = str(row[4].value)
             sizes = sizeOption.split(',')
             size.append(sizes)
 
