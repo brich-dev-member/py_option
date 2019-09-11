@@ -1,3 +1,4 @@
+pymysql
 requests
 certifi==2019.6.16
 Click==7.0

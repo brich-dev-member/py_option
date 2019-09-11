@@ -15,7 +15,7 @@ gender = "MENS2"
 # 전체 10000031
 cateId = "10000031"
 # DAILY / WEEKLY
-dayWeek = "DAILY"
+dayWeek = "WEEKLY"
 url = "https://m.shopping.naver.com/v1/best/window/products?aggregateType=" + viewType + "&gender=" + gender + "&bestCategoryId=" + cateId + "&aggregatePeriod=" + dayWeek
 print(url)
 response = requests.get(url)
