@@ -15,7 +15,7 @@ sql = '''SELECT `payment_at`, `channel`, sum(`total_amount`), sum(`quantity`), C
          '993111790','539493056','1828926037','1067891642','945247948','1766581151','1974989155','968667672',
          '323138475','2123195572','1013156538','144049759','406314315','605655481','275012202','1686110900',
          '6261077','2049757675','445732957','872142571','1292159314','351061991','1140319718','1128216144',
-         '49296365') GROUP BY `payment_at`
+         '49296365','2123195572','1755858205') GROUP BY `payment_at`
          '''
 
 cursor.execute(sql)
@@ -23,7 +23,7 @@ results = cursor.fetchall()
 for row in results:
     payment_at = row[0]
     channel = row[1]
-    total_amount = row[3]
+    total_amount = row[2]
     count_provider = row[4]
     print(payment_at, channel, total_amount, count_provider)
 
