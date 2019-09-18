@@ -1,3 +1,4 @@
+tqdm
 pymysql
 requests
 certifi==2019.6.16
