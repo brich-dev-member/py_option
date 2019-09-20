@@ -64,12 +64,13 @@ sql = '''INSERT INTO `excel`.`calculate` (
         complete_at,
         match_at,
         margin,
-        profit_rate
+        profit_rate,
+        month
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE order_state = %s, delivery_at = %s, quantity = %s,
          brich_product_price = %s, fees = %s, brich_calculate =%s, channel_calculate = %s,
-         complete_at = %s, match_at = %s, margin = %s, profit_rate = %s
+         complete_at = %s, match_at = %s, margin = %s, profit_rate = %s, month = %s
          '''
 
 iter_row = iter(ws.rows)
@@ -92,6 +93,11 @@ for row in rows:
     channel_calculate = replaceint(row[11].value)
     complete_at = replacedate(row[12].value)
     match_at = replacedate(row[13].value)
+    if complete_at is not None:
+        monthStr = datetime.datetime.strptime(complete_at, '%Y-%m-%d')
+        month = monthStr.month
+    else:
+        month = None
     if brich_calculate is None or channel_calculate is None:
         continue
     else:
@@ -115,6 +121,7 @@ for row in rows:
         match_at,
         margin,
         profit_rate,
+        month,
         order_state,
         delivery_at,
         quantity,
@@ -125,9 +132,9 @@ for row in rows:
         complete_at,
         match_at,
         margin,
-        profit_rate
+        profit_rate,
+        month
     )
-
 
     cursor.execute(sql, values)
     db.commit()

@@ -71,7 +71,6 @@ for row in rows:
             deal_margin = result[5]
             if deal_fees is not None:
                 deal_fees = (result[3] / 100)
-                print(deal_fees)
             if deal_total_amount is None or deal_total_qty is None or deal_margin is None:
                 deal_ct = None
                 deal_profit = None

@@ -64,12 +64,15 @@ sql = '''INSERT INTO `excel`.`product` (
         start_date,
         end_date,
         create_date,
-        update_date
+        update_date,
+        week,
+        month
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE confirm = %s, state = %s, product_name = %s,
          category = %s, category_number = %s, price =%s, channel_fees = %s,
-         start_date = %s, end_date = %s, create_date = %s, update_date = %s
+         start_date = %s, end_date = %s, create_date = %s, update_date = %s,
+         week = %s, month = %s
          '''
 
 iter_row = iter(ws.rows)
@@ -95,6 +98,13 @@ for row in rows:
     end_date = replaceenddate(row[12].value)
     create_date = replacedate(row[13].value)
     update_date = replacedate(row[14].value)
+    if create_date is not None:
+        monthStr = datetime.datetime.strptime(create_date, '%Y-%m-%d')
+        week = monthStr.isocalendar()[1]
+        month = monthStr.month
+    else:
+        week = None
+        month = None
 
     values = (
         confirm,
@@ -113,6 +123,8 @@ for row in rows:
         end_date,
         create_date,
         update_date,
+        week,
+        month,
         confirm,
         state,
         product_name,
@@ -123,7 +135,9 @@ for row in rows:
         start_date,
         end_date,
         create_date,
-        update_date
+        update_date,
+        week,
+        month
     )
 
     cursor.execute(sql, values)
