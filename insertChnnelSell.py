@@ -37,18 +37,14 @@ for name in channel_name:
     month,
     {name}_total_amount,
     {name}_qty,
-    {name}_ct,
-    {name}_sales,
-    {name}_cogs
+    {name}_ct
     )
-    values (%s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
+    values (%s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
     week = %s,
     month = %s,
     {name}_total_amount = %s,
     {name}_qty = %s,
-    {name}_ct = %s,
-    {name}_sales = %s,
-    {name}_cogs = %s
+    {name}_ct = %s
      '''
     refundInsertSql = f'''insert into `sell_to_channel` 
             (
@@ -71,34 +67,7 @@ for name in channel_name:
         total_amount = row[2]
         qty = row[3]
         ct = round(total_amount / qty, 0)
-        if name is 'brich':
-            sales = round((int(total_amount) * 13.5) / 100, 0)
-            cogs = 0
-        elif name is 'gmarket' or name is 'auction':
-            sales = round((int(total_amount) * 16.5) / 100, 0)
-            cogs = round((int(total_amount) * 13) / 100, 0)
-        elif name is '11st':
-            sales = round((int(total_amount) * 16.5) / 100, 0)
-            cogs = round((int(total_amount) * 11) / 100, 0)
-        elif name is 'interpark':
-            sales = round((int(total_amount) * 16.5) / 100, 0)
-            cogs = round((int(total_amount) * 13) / 100, 0)
-        elif name is 'coupang':
-            sales = round((int(total_amount) * 19.8) / 100, 0)
-            cogs = round((int(total_amount) * 11) / 100, 0)
-        elif name is 'g9':
-            sales = round((int(total_amount) * 16.5) / 100, 0)
-            cogs = round((int(total_amount) * 14) / 100, 0)
-        elif name is 'wemakeprice' or name is 'tmon':
-            if month < 9:
-                sales = round((int(total_amount) * 19.8) / 100, 0)
-                cogs = round((int(total_amount) * 13) / 100, 0)
-            else:
-                sales = round((int(total_amount) * 87) / 100, 0)
-                cogs = round((int(total_amount) * 80.2) / 100, 0)
-        elif name is 'ssg':
-            sales = round((int(total_amount) * 90) / 100, 0)
-            cogs = round((int(total_amount) * 80.2) / 100, 0)
+
         values = (
             date,
             week,
@@ -106,15 +75,11 @@ for name in channel_name:
             total_amount,
             qty,
             ct,
-            sales,
-            cogs,
             week,
             month,
             total_amount,
             qty,
-            ct,
-            sales,
-            cogs
+            ct
         )
 
         print(insertSql, values)

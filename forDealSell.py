@@ -54,7 +54,6 @@ for row in rows:
             sell as s inner join product as p on s.`product_number` = p.`product_number` 
             left outer join `calculate` as c on s.`product_order_number` = c.`product_order_number`
             where
-            s.order_state not in ('결제취소') and
             s.product_number in ('{product_number}')
             and s.channel = '{channelName}'
             and s.payment_at >= date_add('{date}', interval -1 day) and s.payment_at <= date_add('{date}', interval 7 day )
