@@ -746,6 +746,7 @@ for col in ws.columns:
     ws.column_dimensions[column].width = (max_length + 1) * 1.2
 
 makeToday = datetime.today()
+
 now = makeToday.strftime("%m%d_%H%M")
 result = "2019_운영지표" + "_" + now + ".xlsx"
 wb.save(result)
