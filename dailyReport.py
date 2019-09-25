@@ -93,9 +93,9 @@ def intNone (text):
 
 
 for weekAmount in weekAmounts:
-    week = intNone(weekAmount[0])
-    minDate = intNone(weekAmount[1])
-    maxDate = intNone(weekAmount[2])
+    week = weekAmount
+    minDate = datetime.strftime(weekAmount[1], '%Y-%m-%d')
+    maxDate = datetime.strftime(weekAmount[2], '%Y-%m-%d')
     brich_total_amount = intNone(weekAmount[3])
     brich_total_qty = intNone(weekAmount[4])
     brich_total_sales = intNone(weekAmount[5])
@@ -188,5 +188,8 @@ for weekAmount in weekAmounts:
     multi_total_cogs = ssg_total_cogs
     multi_total_refund_amount = ssg_total_refund_amount
     multi_total_refund_qty = ssg_total_refund_qty
+
+    ws.cell(row=1, column=1).value = '주차'
+    ws.cell(row=1, column=2).value = minDate + ' - ' + maxDate
 
 
