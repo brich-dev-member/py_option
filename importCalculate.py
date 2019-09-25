@@ -42,7 +42,7 @@ def replacenone(text):
 
 def replaceint(text):
     if text is None:
-        return
+        return 0
     else:
         text = int(text)
         return text

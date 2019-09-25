@@ -104,7 +104,6 @@ for name in channel_name:
             qty
         )
 
-        print(refundInsertSql, refundValues)
         cursor.execute(refundInsertSql, refundValues)
 
 db.close()
