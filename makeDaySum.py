@@ -1394,4 +1394,5 @@ makeToday = datetime.today()
 
 now = makeToday.strftime("%m%d_%H%M")
 result = "2019_운영지표" + "_" + now + ".xlsx"
+print(result)
 wb.save(result)

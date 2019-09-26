@@ -91,9 +91,10 @@ def intNone (text):
         text = int(text)
         return text
 
+no = 2
 
 for weekAmount in weekAmounts:
-    week = weekAmount
+    week = weekAmount[0]
     minDate = datetime.strftime(weekAmount[1], '%Y-%m-%d')
     maxDate = datetime.strftime(weekAmount[2], '%Y-%m-%d')
     brich_total_amount = intNone(weekAmount[3])
@@ -190,6 +191,78 @@ for weekAmount in weekAmounts:
     multi_total_refund_qty = ssg_total_refund_qty
 
     ws.cell(row=1, column=1).value = '주차'
-    ws.cell(row=1, column=2).value = minDate + ' - ' + maxDate
+    ws.cell(row=1, column=2).value = '일자'
+    ws.cell(row=1, column=3).value = '채널'
+    ws.cell(row=1, column=4).value = '실거래액'
+    ws.cell(row=1, column=5).value = '거래액'
+    ws.cell(row=1, column=6).value = '매출'
+    ws.cell(row=1, column=7).value = '매출원가'
+    ws.cell(row=1, column=8).value = '공헌이익'
+    ws.cell(row=1, column=9).value = '반품금액'
+    ws.cell(row=1, column=10).value = '반품율'
 
+    ws.cell(row=no, column=1).value = week
+    ws.cell(row=no, column=2).value = minDate + ' - ' + maxDate
+    ws.cell(row=no, column=3).value = '브리치'
+    ws.cell(row=no, column=4).value = brich_total_amount - brich_total_refund_amount
+    ws.cell(row=no, column=5).value = brich_total_amount
+    ws.cell(row=no, column=6).value = brich_total_sales
+    ws.cell(row=no, column=7).value = brich_total_cogs
+    ws.cell(row=no, column=8).value = brich_total_sales - brich_total_cogs
+    ws.cell(row=no, column=9).value = brich_total_refund_amount
+    ws.cell(row=no, column=10).value = round(brich_total_refund_amount / brich_total_amount, 2)
 
+    ws.cell(row=no + 1, column=1).value = week
+    ws.cell(row=no + 1, column=2).value = minDate + ' - ' + maxDate
+    ws.cell(row=no + 1, column=3).value = '오픈마켓'
+    ws.cell(row=no + 1, column=4).value = openmarket_total_amount - openmarket_total_refund_amount
+    ws.cell(row=no + 1, column=5).value = openmarket_total_amount
+    ws.cell(row=no + 1, column=6).value = openmarket_total_sales
+    ws.cell(row=no + 1, column=7).value = openmarket_total_cogs
+    ws.cell(row=no + 1, column=8).value = openmarket_total_sales - openmarket_total_cogs
+    ws.cell(row=no + 1, column=9).value = openmarket_total_refund_amount
+    ws.cell(row=no + 1, column=10).value = round(openmarket_total_refund_amount / openmarket_total_amount, 2)
+
+    ws.cell(row=no + 2, column=1).value = week
+    ws.cell(row=no + 2, column=2).value = minDate + ' - ' + maxDate
+    ws.cell(row=no + 2, column=3).value = '소셜커머스'
+    ws.cell(row=no + 2, column=4).value = social_total_amount - social_total_refund_amount
+    ws.cell(row=no + 2, column=5).value = social_total_amount
+    ws.cell(row=no + 2, column=6).value = social_total_sales
+    ws.cell(row=no + 2, column=7).value = social_total_cogs
+    ws.cell(row=no + 2, column=8).value = social_total_sales - social_total_cogs
+    ws.cell(row=no + 2, column=9).value = social_total_refund_amount
+    ws.cell(row=no + 2, column=10).value = round(social_total_refund_amount / social_total_amount, 2)
+
+    ws.cell(row=no + 3, column=1).value = week
+    ws.cell(row=no + 3, column=2).value = minDate + ' - ' + maxDate
+    ws.cell(row=no + 3, column=3).value = '종합몰'
+    ws.cell(row=no + 3, column=4).value = multi_total_amount - multi_total_refund_amount
+    ws.cell(row=no + 3, column=5).value = multi_total_amount
+    ws.cell(row=no + 3, column=6).value = multi_total_sales
+    ws.cell(row=no + 3, column=7).value = multi_total_cogs
+    ws.cell(row=no + 3, column=8).value = multi_total_sales - multi_total_cogs
+    ws.cell(row=no + 3, column=9).value = multi_total_refund_amount
+    ws.cell(row=no + 3, column=10).value = round(multi_total_refund_amount / multi_total_amount, 2)
+
+    ws.cell(row=no + 4, column=4).value = f'''=sum(d{no}:d{no + 3})'''
+    ws.cell(row=no + 4, column=5).value = f'''=sum(e{no}:e{no + 3})'''
+    ws.cell(row=no + 4, column=6).value = f'''=sum(f{no}:f{no + 3})'''
+    ws.cell(row=no + 4, column=7).value = f'''=sum(g{no}:g{no + 3})'''
+    ws.cell(row=no + 4, column=8).value = f'''=sum(h{no}:h{no + 3})'''
+    ws.cell(row=no + 4, column=9).value = f'''=sum(i{no}:i{no + 3})'''
+    ws.cell(row=no + 4, column=10).value = f'''=i{no+4}/e{no+4}'''
+    no += 6
+
+for col in ws.columns:
+    max_length = 0
+    columnIndex = col[0].column
+    column = get_column_letter(columnIndex)
+    for cell in col:
+        if max_length < len(str(cell.value)) < 30:
+            max_length = len(str(cell.value))
+        else:
+            pass
+    ws.column_dimensions[column].width = (max_length + 1) * 1.2
+
+wb.save('aa.xlsx')
