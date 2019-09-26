@@ -124,8 +124,6 @@ for row in rows:
         crawler, provider_number, channel_order_number, week, month, payment_at, order_state, claim, delivery_at,
         delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month,
     )
-
-    print(sql, values)
     cursor.execute(sql, values)
     db.commit()
 
