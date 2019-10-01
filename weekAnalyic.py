@@ -91,6 +91,13 @@ productProviderLists = cursor.fetchall()
 
 pno = 2
 
+
+def noZeroCount(text):
+    if text is 0:
+        return None
+    else:
+        return int(text)
+
 for productProviderList in productProviderLists:
     product_provider_name = productProviderList[0]
 
@@ -107,12 +114,12 @@ for productProviderList in productProviderLists:
     cursor.execute(productSql)
     providerProductLists = cursor.fetchall()
 
-    productCount1st = providerProductLists[0][0]
-    productCount2nd = providerProductLists[0][1]
-    productCount3rd = providerProductLists[0][2]
-    productCount4st = providerProductLists[0][3]
-    productCount5st = providerProductLists[0][4]
-    productCount6st = providerProductLists[0][5]
+    productCount1st = noZeroCount(providerProductLists[0][0])
+    productCount2nd = noZeroCount(providerProductLists[0][1])
+    productCount3rd = noZeroCount(providerProductLists[0][2])
+    productCount4st = noZeroCount(providerProductLists[0][3])
+    productCount5st = noZeroCount(providerProductLists[0][4])
+    productCount6st = noZeroCount(providerProductLists[0][5])
 
     wa.cell(row=1, column=1).value = '셀러명'
     wa.cell(row=1, column=2).value = f'{month}월 등록수'
@@ -135,6 +142,7 @@ for productProviderList in productProviderLists:
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
 result = '2019_상품등록_판매_지표' + now + '.xlsx'
+print(result)
 wb.save(result)
 
 

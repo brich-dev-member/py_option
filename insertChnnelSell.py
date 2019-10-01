@@ -11,8 +11,7 @@ channel_name = ['brich', 'gmarket', 'auction', '11st', 'wemakeprice', 'interpark
 for name in channel_name:
     sql = f'''select payment_at, channel, sum(total_amount), sum(quantity)
     from sell 
-    where not order_state in ('결제취소')
-     and channel = '{name}'
+    where channel = '{name}'
     and payment_at is not null 
     group by payment_at;'''
 
@@ -21,7 +20,7 @@ for name in channel_name:
 
     refundSql = f'''select payment_at, channel, sum(total_amount), sum(quantity)
     from sell 
-    where order_state in ('반품')
+    where order_state in ('반품','결제취소')
     and channel = '{name}'
     and payment_at is not null 
     group by payment_at;'''
@@ -72,7 +71,7 @@ for name in channel_name:
         qty = row[3]
         ct = round(total_amount / qty, 0)
         if name is 'brich':
-            sales = round((int(total_amount) * 13.5) / 100, 0)
+            sales = round((int(total_amount) * 16.5) / 100, 0)
             cogs = 0
         elif name is 'gmarket' or name is 'auction':
             sales = round((int(total_amount) * 16.5) / 100, 0)

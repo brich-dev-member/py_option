@@ -47,7 +47,10 @@ def noneCheck(a, b):
         return None
 
 
-for i in range(2, 10):
+startMonth = 7
+endMonth = 9 + 1
+
+for i in range(startMonth, endMonth):
     sql = f'''
     SELECT 
     date,
@@ -1049,7 +1052,7 @@ for i in range(2, 10):
     ws.cell(row=lastRow + 3, column=67).style = toImportant
     ws.cell(row=lastRow + 3, column=67).border = border
 
-weekSql = '''
+weekSql = f'''
     SELECT 
     week,
     min(date),
@@ -1094,7 +1097,7 @@ weekSql = '''
     sum(tmon_qty),
     sum(tmon_sales),
     sum(tmon_cogs)
-    FROM sell_to_channel GROUP BY week
+    FROM sell_to_channel where month >= {startMonth} GROUP BY week
 '''
 weekStartRow = ws.max_row + 1
 
@@ -1127,7 +1130,7 @@ for weekRow in weekRows:
     st_CT = noZerodiv(st_qty, st_total_amount)
     st_sales = weekRow[17]
     st_cogs = weekRow[18]
-    st_margin = noneCheck(st_sales, st_margin)
+    st_margin = noneCheck(st_sales, st_cogs)
     wemakeprice_total_amount = weekRow[19]
     wemakeprice_qty = weekRow[20]
     wemakeprice_CT = noZerodiv(wemakeprice_qty, wemakeprice_total_amount)
@@ -1165,7 +1168,7 @@ for weekRow in weekRows:
     tmon_cogs = weekRow[42]
     tmon_margin = noneCheck(tmon_sales, tmon_cogs)
 
-    ws.cell(row=weekStartRow, column=1).value = week
+    ws.cell(row=weekStartRow, column=1).value = weekstr
     ws.cell(row=weekStartRow, column=1).border = border
     ws.cell(row=weekStartRow, column=2).value = f'=sum(h{weekStartRow}+n{weekStartRow}+t{weekStartRow}+z{weekStartRow}+af{weekStartRow}+al{weekStartRow}+ar{weekStartRow}+ax{weekStartRow}+bd{weekStartRow}+bj{weekStartRow})'
     ws.cell(row=weekStartRow, column=2).number_format = '#,##0;[red]-#,##0'
