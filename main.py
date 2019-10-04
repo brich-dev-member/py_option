@@ -106,7 +106,7 @@ def option_slice():
 
         makeToday = datetime.today()
         now = makeToday.strftime("%m%d_%H%M")
-        result = filename[0:filename.find('.')] + "_" + now + ".xlsx"
+        result = './temp/' + filename[0:filename.find('.')] + "_" + now + ".xlsx"
         wb.save(result)
         print(result)
         return send_file(

@@ -16,3 +16,6 @@ vcs.xml
 .idea/py_option.iml
 .idea/vcs.xml
 __pycache__/
+.ipynb_checkpoints/
+temp/day.csv
+temp/

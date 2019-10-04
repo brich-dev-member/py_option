@@ -71,8 +71,12 @@ for name in channel_name:
         qty = row[3]
         ct = round(total_amount / qty, 0)
         if name is 'brich':
-            sales = round((int(total_amount) * 16.5) / 100, 0)
-            cogs = 0
+            if month >= 10:
+                sales = round((int(total_amount) * 3.96) / 100, 0)
+                cogs = 0
+            else:
+                sales = round((int(total_amount) * 16.5) / 100, 0)
+                cogs = 0
         elif name is 'gmarket' or name is 'auction':
             sales = round((int(total_amount) * 16.5) / 100, 0)
             cogs = round((int(total_amount) * 13) / 100, 0)

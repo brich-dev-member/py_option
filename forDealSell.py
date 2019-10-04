@@ -16,7 +16,7 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-db = pymysql.connect(host='127.0.0.1', user='root', password='root', db='excel', charset='utf8')
+db = pymysql.connect(host='127.0.0.1', user='root', password='root', db='excel', charset='utf8', autocommit=True)
 cursor = db.cursor()
 
 iter_row = iter(ws.rows)
@@ -62,6 +62,11 @@ for row in rows:
         cursor.execute(sql)
         results = cursor.fetchall()
 
+        isDealSql = f'''
+                update `product` set `is_deal` = 1 where `product_number` = {product_number}; 
+                '''
+        cursor.execute(isDealSql)
+
         for result in results:
             deal_total_amount = result[0]
             deal_total_qty = result[1]
@@ -94,6 +99,62 @@ for row in rows:
             ws.cell(row=no, column=15).value = deal_profit
             ws.cell(row=no, column=15).number_format = '0.00%;[red]-0.00%'
             no += 1
+
+
+wa = wb.create_sheet('주간통계')
+
+newRow = 1
+
+startWeek = 35
+endWeek = startWeek + 5
+for week in range(startWeek, endWeek):
+    weekSql = f'''
+            select s.`week`, s.`channel`,count(DISTINCT(s.`product_number`)), sum(s.`total_amount`), sum(s.`quantity`),
+            sum(c.`brich_calculate`), sum(c.`channel_calculate`), sum(c.`margin`)
+            from sell as s left join `product` as p on s.`product_number` = p.`product_number` 
+            left join `calculate` as c on s.`product_order_number` = c.`product_order_number`
+            where p.`is_deal` = 1 and s.week = {week} group by s.`channel`, s.`week`;
+            '''
+    cursor.execute(weekSql)
+    weekDataSet = cursor.fetchall()
+    for weekData in weekDataSet:
+        weekNum = weekData[0]
+        channel = weekData[1]
+        dealCount = weekData[2]
+        dealTotalAmount = weekData[3]
+        dealTotalQty = weekData[4]
+        if dealTotalAmount is not None:
+            dealCt = dealTotalAmount / dealTotalQty
+        else:
+            dealCt = 0
+        dealEachCt = dealTotalAmount / dealCount
+        dealCalculate = weekData[5]
+        dealChannelCalculate = weekData[6]
+        dealMargin = weekData[7]
+
+        wa.cell(row=1, column=1).value = '주차'
+        wa.cell(row=1, column=2).value = '채널'
+        wa.cell(row=1, column=3).value = '딜수'
+        wa.cell(row=1, column=4).value = '딜 거래량'
+        wa.cell(row=1, column=5).value = '딜 판매량'
+        wa.cell(row=1, column=6).value = '딜 객단가'
+        wa.cell(row=1, column=7).value = '딜별 거래액'
+        wa.cell(row=1, column=8).value = '정산대상금액'
+        wa.cell(row=1, column=9).value = '채널정산액'
+        wa.cell(row=1, column=10).value = '마진'
+
+        wa.cell(row=newRow, column=1).value = week
+        wa.cell(row=newRow, column=2).value = channel
+        wa.cell(row=newRow, column=3).value = dealCount
+        wa.cell(row=newRow, column=4).value = dealTotalAmount
+        wa.cell(row=newRow, column=5).value = dealTotalQty
+        wa.cell(row=newRow, column=6).value = dealCt
+        wa.cell(row=newRow, column=7).value = dealEachCt
+        wa.cell(row=newRow, column=8).value = dealCalculate
+        wa.cell(row=newRow, column=9).value = dealChannelCalculate
+        wa.cell(row=newRow, column=10).value = dealMargin
+
+        newRow += 1
 
 
 for col in ws.columns:
