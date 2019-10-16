@@ -1,7 +1,14 @@
 import pymysql
 import datetime
+import config
 
-db = pymysql.connect(host='localhost', user='root', password='root', db='excel', charset='utf8', autocommit = True)
+db = pymysql.connect(
+    host=config.DATABASE_CONFIG['host'],
+    user=config.DATABASE_CONFIG['user'],
+    password=config.DATABASE_CONFIG['password'],
+    db=config.DATABASE_CONFIG['db'],
+    charset=config.DATABASE_CONFIG['charset'],
+    autocommit=True)
 cursor = db.cursor()
 
 # brich, gmarket, auction, 11st, wemakeprice, interpark, coupang, ssg, g9

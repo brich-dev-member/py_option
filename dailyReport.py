@@ -4,15 +4,24 @@ from openpyxl import Workbook
 from openpyxl.styles import Border, Side, PatternFill, Font, Alignment, NamedStyle
 from openpyxl.utils.cell import get_column_letter
 import numpy as np
+import config
 
 wb = Workbook()
 
 ws = wb.active
 
-db = pymysql.connect(host='localhost', user='root', password='root', db='excel', charset='utf8')
+db = pymysql.connect(
+    host=config.DATABASE_CONFIG['host'],
+    user=config.DATABASE_CONFIG['user'],
+    password=config.DATABASE_CONFIG['password'],
+    db=config.DATABASE_CONFIG['db'],
+    charset=config.DATABASE_CONFIG['charset'],
+    autocommit=True)
 cursor = db.cursor()
 
-weekSql ='''
+reportMonth = 8, 9, 10
+
+weekSql =f'''
         SELECT 
         week,
         min(date),
@@ -77,7 +86,7 @@ weekSql ='''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in (8,9) GROUP BY week
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]},{reportMonth[2]}) GROUP BY week
         '''
 
 cursor.execute(weekSql)
@@ -254,7 +263,7 @@ for weekAmount in weekAmounts:
     ws.cell(row=no + 4, column=10).value = f'''=i{no+4}/e{no+4}'''
     no += 6
 
-monthSql ='''
+monthSql =f'''
         SELECT 
         month,
         min(date),
@@ -319,7 +328,7 @@ monthSql ='''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in (8,9) GROUP BY month
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]},{reportMonth[2]}) GROUP BY month
         '''
 
 cursor.execute(monthSql)

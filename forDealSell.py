@@ -6,6 +6,7 @@ from datetime import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from tqdm import tqdm
+import config
 
 Tk().withdraw()
 filename = askopenfilename()
@@ -16,7 +17,13 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-db = pymysql.connect(host='127.0.0.1', user='root', password='root', db='excel', charset='utf8', autocommit=True)
+db = pymysql.connect(
+    host=config.DATABASE_CONFIG['host'],
+    user=config.DATABASE_CONFIG['user'],
+    password=config.DATABASE_CONFIG['password'],
+    db=config.DATABASE_CONFIG['db'],
+    charset=config.DATABASE_CONFIG['charset'],
+    autocommit=True)
 cursor = db.cursor()
 
 iter_row = iter(ws.rows)
@@ -105,11 +112,12 @@ wa = wb.create_sheet('주간통계')
 
 newRow = 1
 
-startWeek = 35
+startWeek = 38
 endWeek = startWeek + 5
 for week in range(startWeek, endWeek):
     weekSql = f'''
-            select s.`week`, s.`channel`,count(DISTINCT(s.`product_number`)), sum(s.`total_amount`), sum(s.`quantity`),
+            select s.`week`, min(s.payment_at), max(s.payment_at), s.`channel`,
+            count(DISTINCT(s.`product_number`)), sum(s.`total_amount`), sum(s.`quantity`),
             sum(c.`brich_calculate`), sum(c.`channel_calculate`), sum(c.`margin`)
             from sell as s left join `product` as p on s.`product_number` = p.`product_number` 
             left join `calculate` as c on s.`product_order_number` = c.`product_order_number`
@@ -119,43 +127,55 @@ for week in range(startWeek, endWeek):
     weekDataSet = cursor.fetchall()
     for weekData in weekDataSet:
         weekNum = weekData[0]
-        channel = weekData[1]
-        dealCount = weekData[2]
-        dealTotalAmount = weekData[3]
-        dealTotalQty = weekData[4]
+        minDate = datetime.strftime(weekData[1], '%Y-%m-%d')
+        maxDate = datetime.strftime(weekData[2], '%Y-%m-%d')
+        channel = weekData[3]
+        dealCount = weekData[4]
+        dealTotalAmount = weekData[5]
+        dealTotalQty = weekData[6]
         if dealTotalAmount is not None:
             dealCt = dealTotalAmount / dealTotalQty
         else:
             dealCt = 0
         dealEachCt = dealTotalAmount / dealCount
-        dealCalculate = weekData[5]
-        dealChannelCalculate = weekData[6]
-        dealMargin = weekData[7]
+        dealCalculate = weekData[7]
+        dealChannelCalculate = weekData[8]
+        dealMargin = weekData[9]
 
         wa.cell(row=1, column=1).value = '주차'
-        wa.cell(row=1, column=2).value = '채널'
-        wa.cell(row=1, column=3).value = '딜수'
-        wa.cell(row=1, column=4).value = '딜 거래량'
-        wa.cell(row=1, column=5).value = '딜 판매량'
-        wa.cell(row=1, column=6).value = '딜 객단가'
-        wa.cell(row=1, column=7).value = '딜별 거래액'
-        wa.cell(row=1, column=8).value = '정산대상금액'
-        wa.cell(row=1, column=9).value = '채널정산액'
-        wa.cell(row=1, column=10).value = '마진'
+        wa.cell(row=1, column=2).value = '일'
+        wa.cell(row=1, column=3).value = '채널'
+        wa.cell(row=1, column=4).value = '딜수'
+        wa.cell(row=1, column=5).value = '딜 거래량'
+        wa.cell(row=1, column=6).value = '딜 판매량'
+        wa.cell(row=1, column=7).value = '딜 객단가'
+        wa.cell(row=1, column=8).value = '딜별 거래액'
+        wa.cell(row=1, column=9).value = '정산대상금액'
+        wa.cell(row=1, column=10).value = '채널정산액'
+        wa.cell(row=1, column=11).value = '마진'
 
         wa.cell(row=newRow, column=1).value = week
-        wa.cell(row=newRow, column=2).value = channel
-        wa.cell(row=newRow, column=3).value = dealCount
-        wa.cell(row=newRow, column=4).value = dealTotalAmount
-        wa.cell(row=newRow, column=5).value = dealTotalQty
-        wa.cell(row=newRow, column=6).value = dealCt
-        wa.cell(row=newRow, column=7).value = dealEachCt
-        wa.cell(row=newRow, column=8).value = dealCalculate
-        wa.cell(row=newRow, column=9).value = dealChannelCalculate
-        wa.cell(row=newRow, column=10).value = dealMargin
+        wa.cell(row=newRow, column=2).value = minDate + "~" + maxDate
+        wa.cell(row=newRow, column=3).value = channel
+        wa.cell(row=newRow, column=4).value = dealCount
+        wa.cell(row=newRow, column=4).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=5).value = dealTotalAmount
+        wa.cell(row=newRow, column=5).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=6).value = dealTotalQty
+        wa.cell(row=newRow, column=6).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=7).value = dealCt
+        wa.cell(row=newRow, column=7).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=8).value = dealEachCt
+        wa.cell(row=newRow, column=8).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=9).value = dealCalculate
+        wa.cell(row=newRow, column=9).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=10).value = dealChannelCalculate
+        wa.cell(row=newRow, column=10).number_format = '#,##0;[red]-#,##0'
+        wa.cell(row=newRow, column=11).value = dealMargin
+        wa.cell(row=newRow, column=11).number_format = '#,##0;[red]-#,##0'
 
         newRow += 1
-
+    newRow += 2
 
 for col in ws.columns:
     max_length = 0
@@ -168,7 +188,18 @@ for col in ws.columns:
             pass
     ws.column_dimensions[column].width = (max_length + 1) * 1.2
 
+for col in wa.columns:
+    max_length = 0
+    columnIndex = col[0].column
+    column = get_column_letter(columnIndex)
+    for cell in col:
+        if max_length < len(str(cell.value)) < 30:
+            max_length = len(str(cell.value))
+        else:
+            pass
+    wa.column_dimensions[column].width = (max_length + 1) * 1.2
+
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
-result = filename
+result = filename[0:filename.find('.')] + "_" + now + ".xlsx"
 wb.save(result)

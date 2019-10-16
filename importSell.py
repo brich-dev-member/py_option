@@ -4,6 +4,7 @@ from openpyxl import load_workbook
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from tqdm import tqdm
+import config
 
 Tk().withdraw()
 filename = askopenfilename()
@@ -14,7 +15,13 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-db = pymysql.connect(host='127.0.0.1', user='root', password='root', db='excel', charset='utf8')
+db = pymysql.connect(
+    host=config.DATABASE_CONFIG['host'],
+    user=config.DATABASE_CONFIG['user'],
+    password=config.DATABASE_CONFIG['password'],
+    db=config.DATABASE_CONFIG['db'],
+    charset=config.DATABASE_CONFIG['charset'],
+    autocommit=True)
 cursor = db.cursor()
 
 

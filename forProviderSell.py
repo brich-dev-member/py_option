@@ -38,9 +38,9 @@ no = 2
 
 for row in rows:
     provider_number = row[3].value
-    month = 8
+    month = 9
     # 9월 시작 주 35
-    week = 36
+    week = 40
 
     sql = f'''
         select sum(`total_amount`),

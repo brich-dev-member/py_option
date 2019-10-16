@@ -1,3 +1,5 @@
+xmltodict
+urllib3
 tqdm
 pymysql
 requests
