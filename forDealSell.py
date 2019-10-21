@@ -54,7 +54,7 @@ for row in rows:
             sum(s.`total_amount`), 
             sum(s.`quantity`),
             p.`provider_name`,
-            p.`fees`,
+            (select {channelName}_fees from product where product_number = {product_number}),
             sum(c.`channel_calculate`),
             sum(c.`margin`)
             from 
