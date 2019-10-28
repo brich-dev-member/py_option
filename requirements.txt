@@ -1,3 +1,7 @@
+slacker
+pyexcel
+dateutil
+selenium
 xmltodict
 urllib3
 tqdm

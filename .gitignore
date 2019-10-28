@@ -1,4 +1,5 @@
 *.xlsx
+*.xls
 *.spec
 build/
 dist/
@@ -21,3 +22,4 @@ temp/day.csv
 temp/
 !/.gitignore
 !/config.py
+!/.gitignore
