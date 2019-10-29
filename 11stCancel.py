@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 import config
 import time
@@ -39,13 +40,20 @@ def replaceint(text):
         return text
 
 
-options = webdriver.ChromeOptions()
+options = Options()
+# options.add_argument('--headless')
+# options.add_argument("disable-gpu")
 prefs = {
     "download.default_directory": config.ST_LOGIN['excelPath'],
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='./chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+
+# driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+# params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
+# command_result = driver.execute("send_command", params)
+
 driver.get('https://login.11st.co.kr/auth/front/selleroffice/login.tmall')
 
 driver.find_element_by_id('user-id').send_keys(config.ST_LOGIN['id'])
@@ -70,6 +78,22 @@ time.sleep(3)
 
 driver.find_element_by_xpath('//*[@id="search_area"]/form/div[3]/div/a').click()
 time.sleep(2)
+driver.get('https://soffice.11st.co.kr/escrow/OrderingLogistics.tmall')
+time.sleep(2)
+findUp = driver.find_element_by_id('goDlvTmpltPopup')
+driver.switch_to.frame(findUp.find_element_by_tag_name('iframe'))
+driver.find_element_by_xpath('//*[@id="ext-gen6"]/div/button').click()
+time.sleep(1)
+driver.switch_to.default_content()
+driver.find_element_by_xpath('//*[@id="order_good_301"]').click()
+time.sleep(2)
+driver.find_element_by_xpath('//*[@id="searchform"]/div/div[1]/div[6]/div/a[2]').click()
+time.sleep(2)
+print(driver.window_handles)
+driver.switch_to.window(driver.window_handles[1])
+driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
+time.sleep(5)
+driver.close()
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
 
@@ -77,9 +101,16 @@ stOriExcel = config.ST_LOGIN['excelPath'] + "39731068_sellListlistType.xls"
 stResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xls'
 stResultXlsx = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xlsx'
 
+stLogiOriExcel = config.ST_LOGIN['excelPath'] + "39731068_logistics.xls"
+stLogiResultExcel = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xls'
+stLogiResultXlsx = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xlsx'
+
+
 os.rename(stOriExcel, stResultExcel)
+os.rename(stLogiOriExcel, stLogiResultExcel)
 
 p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
+p.save_book_as(file_name=stLogiResultExcel, dest_file_name=stLogiResultXlsx)
 
 path = stResultXlsx
 
@@ -124,7 +155,6 @@ sql = '''INSERT INTO `excel`.`11st_cancel` (
 maxRow = ws.max_row - 2
 print(maxRow)
 for row in ws.iter_rows(min_row=7, max_row=maxRow):
-    print(row)
     state = replacenone(row[1].value)
     channel_order_number = replacenone(row[2].value)
     channel_order_list = replaceint(row[3].value)
@@ -175,11 +205,56 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     )
     cursor.execute(sql, values)
     print(sql, values)
+
+
+path = stLogiResultXlsx
+
+wb = load_workbook(path)
+
+ws = wb.active
+
+orderSql = '''
+        INSERT INTO `excel`.`11st_order` (
+        state,
+        channel_order_number,
+        channel_order_list,
+        product_name,
+        product_option,
+        quantity,
+        payment_at
+        ) VALUES (
+        %s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE state = %s
+        '''
+maxRow = ws.max_row - 2
+
+for row in ws.iter_rows(min_row=3):
+    state = replacenone(row[1].value)
+    channel_order_number = replacenone(row[2].value)
+    channel_order_list = replaceint(row[3].value)
+    product_name = replacenone(row[6].value)
+    product_option = replacenone(row[7].value)
+    quantity = replaceint(row[8].value)
+    payment_at = row[5].value
+
+    orderValues = (
+        state,
+        channel_order_number,
+        channel_order_list,
+        product_name,
+        product_option,
+        quantity,
+        payment_at,
+        state
+    )
+    cursor.execute(orderSql, orderValues)
+    print(orderSql, orderValues)
 db.close()
 
 
 # 11번가 끝 bflow 시
-
+print(driver.window_handles)
+driver.switch_to.window(driver.window_handles[0])
 driver.get('https://partner.brich.co.kr/login')
 driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/button[2]').click()
 time.sleep(2)
@@ -188,6 +263,7 @@ driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/d
 time.sleep(1)
 driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
 time.sleep(4)
+driver.minimize_window()
 # driver.get('https://partner.brich.co.kr/order/all#/')
 # time.sleep(5)
 # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[5]/div/div[5]/input').click()
@@ -207,7 +283,7 @@ driver.get(f'''
     productId=&isTodayDelivery=&isHold=&coupon_optimus_id=&refererDomain=
 ''')
 time.sleep(60)
-
+driver.quit()
 bflowOriExcel = config.ST_LOGIN['excelPath'] + "orders_" + endNow + "_" + totalNow + ".xlsx"
 bflowResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_order' + now + '.xlsx'
 
@@ -359,7 +435,6 @@ for cancelRow in cancelRows:
             '''
     cursor.execute(cancelState)
     cancelNowTotal = cursor.fetchall()
-    print(cancelNowTotal)
     for cancelNow in cancelNowTotal:
         product_order_number = cancelNow[0]
         order_number = cancelNow[1]
@@ -377,30 +452,107 @@ for cancelRow in cancelRows:
         ws.cell(row=1, column=3).value = '외부채널주문번호'
         ws.cell(row=1, column=4).value = '상품명'
         ws.cell(row=1, column=5).value = '상품옵션'
-        ws.cell(row=1, column=6).value = '브리치 주문상태'
-        ws.cell(row=1, column=7).value = '브리치 클레임상태'
+        ws.cell(row=1, column=6).value = '브리치 클레임상태'
+        ws.cell(row=1, column=7).value = '브리치 주문상태'
         ws.cell(row=1, column=8).value = '11번가 상태'
         ws.cell(row=1, column=9).value = '11번가 클레임이'
         ws.cell(row=1, column=10).value = '11번가 클레임상세이유'
+        print(orderState, state)
+        if orderState == '결제취소' and state == '취소완료':
+            print('skip')
+            continue
+        else:
+            ws.cell(row=no, column=1).value = product_order_number
+            ws.cell(row=no, column=2).value = order_number
+            ws.cell(row=no, column=3).value = channel_order_number
+            ws.cell(row=no, column=4).value = product_name
+            ws.cell(row=no, column=5).value = product_option
+            ws.cell(row=no, column=6).value = claim
+            ws.cell(row=no, column=7).value = orderState
+            ws.cell(row=no, column=8).value = state
+            ws.cell(row=no, column=9).value = cancelReason
+            ws.cell(row=no, column=10).value = cancelDetailReason
 
-        ws.cell(row=no, column=1).value = product_order_number
-        ws.cell(row=no, column=2).value = order_number
-        ws.cell(row=no, column=3).value = channel_order_number
-        ws.cell(row=no, column=4).value = product_name
-        ws.cell(row=no, column=5).value = product_option
-        ws.cell(row=no, column=6).value = claim
-        ws.cell(row=no, column=7).value = orderState
-        ws.cell(row=no, column=8).value = state
-        ws.cell(row=no, column=9).value = cancelReason
-        ws.cell(row=no, column=10).value = cancelDetailReason
-
-        no += 1
+            no += 1
 
 result = config.ST_LOGIN['excelPath'] + '11stCancelResult_' + totalNow + "_" + now + '.xlsx'
+wb.save(result)
+wb.close()
+
+orderList = f'''
+            select s.`product_order_number`, c.`channel_order_number`, s.`product_option` 
+            from `11st_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
+            where c.`payment_at` >= {endNow} group by s.`product_order_number`;
+            '''
+
+cursor.execute(orderList)
+orderRows = cursor.fetchall()
+
+p = re.compile('_F[0-9]+_')
+
+wb = Workbook()
+
+ws = wb.active
+no = 2
+for orderRow in orderRows:
+    productOrderNumber = orderRow[0]
+    orderNumber = orderRow[1]
+    if orderRow[2] is None:
+        productOption = None
+    else:
+        productOption = p.search(orderRow[2]).group()
+    print(productOrderNumber)
+    print(orderNumber)
+    print(productOption)
+    orderState = f'''
+            select s.`product_order_number`, s.`order_number`,
+            c.`channel_order_number`,c.`product_name`,c.`product_option`,s.`claim`,
+            s.`order_state`, c.`state`
+            from sell as s join `11st_order` as c on s.`channel_order_number` = c.`channel_order_number`
+            where s.`product_order_number` = {productOrderNumber} and c.`product_option` like '%{productOption}%'
+            '''
+    cursor.execute(orderState)
+    orderNowTotal = cursor.fetchall()
+    print(orderNowTotal)
+    for orderNow in orderNowTotal:
+        product_order_number = orderNow[0]
+        order_number = orderNow[1]
+        channel_order_number = orderNow[2]
+        product_name = orderNow[3]
+        product_option = orderNow[4]
+        claim = orderNow[5]
+        orderState = orderNow[6]
+        state = orderNow[7]
+
+        ws.cell(row=1, column=1).value = '상품주문번호'
+        ws.cell(row=1, column=2).value = '주문번호'
+        ws.cell(row=1, column=3).value = '외부채널주문번호'
+        ws.cell(row=1, column=4).value = '상품명'
+        ws.cell(row=1, column=5).value = '상품옵션'
+        ws.cell(row=1, column=6).value = '브리치 주문상태'
+        ws.cell(row=1, column=7).value = '브리치 클레임상태'
+        ws.cell(row=1, column=8).value = '11번가 상태'
+        print(orderState, state)
+        if orderState == '배송준비' or orderState == '결제확인' or orderState == '배송지연' and state == '배송준비중':
+            print('skip')
+            continue
+        else:
+            ws.cell(row=no, column=1).value = product_order_number
+            ws.cell(row=no, column=2).value = order_number
+            ws.cell(row=no, column=3).value = channel_order_number
+            ws.cell(row=no, column=4).value = product_name
+            ws.cell(row=no, column=5).value = product_option
+            ws.cell(row=no, column=6).value = claim
+            ws.cell(row=no, column=7).value = orderState
+            ws.cell(row=no, column=8).value = state
+
+            no += 1
+
+result = config.ST_LOGIN['excelPath'] + '11stOrderResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
 wb.close()
 print(result)
 db.close()
 
 
-driver.quit()
+

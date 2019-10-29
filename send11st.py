@@ -8,6 +8,8 @@ from datetime import date
 from datetime import datetime
 import os
 import dateutil.relativedelta
+from openpyxl import load_workbook
+import time
 
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
@@ -17,37 +19,51 @@ endNow = makeLastMonth.strftime("%Y-%m-%d")
 
 fileResults = os.listdir(config.ST_LOGIN['excelPath'])
 
-resultList = []
+cancelResultLists = []
+orderResultLists = []
 
 for fileResult in fileResults:
     result = os.path.join(config.ST_LOGIN['excelPath'], fileResult)
     # result = os.path.abspath(fileResult)
     ext = os.path.split(result)
     a = ext[-1].split("_")
-    print(a[0])
+    b = now.split("_")
+    print(b[0])
+    print(b[1][:2], a[-1][:2])
     if '11stCancelResult' in a[0]:
-        resultList.append(result)
-
-print(resultList)
-results = resultList[-1]
-sendResult = open(results, 'rb')
-title = '11stCancelResult_' + now
-print(results)
-print(sendResult)
+        if b[0] == a[-2] and b[1][:2] == a[-1][:2]:
+            cancelResultLists.append(result)
+    elif '11stOrderResult' in a[0]:
+        if b[0] == a[-2] and b[1][:2] == a[-1][:2]:
+            orderResultLists.append(result)
+print(cancelResultLists, orderResultLists)
+wb = load_workbook(cancelResultLists[0])
+ws = wb.active
+cancelRow = str(ws.max_row - 1)
+wb = load_workbook(orderResultLists[0])
+ws = wb.active
+orderRow = str(ws.max_row - 1)
+cancelSendResult = open(cancelResultLists[0], 'rb')
+orderSendResult = open(orderResultLists[0], 'rb')
+cancelTitle = '11stCancelResult_' + now + '총' + cancelRow + '건'
+orderTitle = '11stOrderResult_' + now + '총' + orderRow + '건'
+print(cancelSendResult)
 slack = Slacker(config.SLACK_API['token'])
 slack.files.upload(
-    file_=results,
+    file_=cancelSendResult,
     channels=config.SLACK_API['channels'],
-
+    title=cancelTitle,
 )
-
-# "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#  filetype": "xlsx",
-#  "pretty_type": "Excel Spreadsheet",
+time.sleep(2)
+slack.files.upload(
+    file_=orderSendResult,
+    channels=config.SLACK_API['channels'],
+    title=orderTitle,
+)
 # server = smtplib.SMTP('smtp.gmail.com', 587)
 # server.starttls()
 # server.login(config.MAIL_LOGIN['account2'], config.MAIL_LOGIN['password2'])
-
+#
 # msg = MIMEBase('multipart', 'mixed')
 # msg['Subject'] = '11번가 취소완료 리스트' + totalNow
 # msg['from'] = config.MAIL_LOGIN['account2']
@@ -61,7 +77,7 @@ slack.files.upload(
 # msg.attach(MIMEText(body, 'plain'))
 #
 #
-# path = config.ST_LOGIN['excelPath'] + os.path.basename(sendResult)
+# path = config.ST_LOGIN['excelPath'] + os.path.basename(cancelResultLists[0])
 # print(path)
 # part = MIMEBase('application', 'octet-stream')
 # part.set_payload(open(path, 'rb').read())
