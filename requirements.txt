@@ -1,6 +1,6 @@
 slacker
 pyexcel
-dateutil
+python-dateutil
 selenium
 xmltodict
 urllib3

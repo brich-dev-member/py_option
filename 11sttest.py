@@ -15,6 +15,7 @@ import re
 from openpyxl import Workbook
 
 
+
 def replacedate(text):
     if text is None:
         return
@@ -39,172 +40,225 @@ def replaceint(text):
         return text
 
 
-options = Options()
-# options.add_argument('--headless')
-# options.add_argument("disable-gpu")
-prefs = {
-    "download.default_directory": config.ST_LOGIN['excelPath'],
-    "directory_upgrade": True
-}
-options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
-
-# driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-# params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
-# command_result = driver.execute("send_command", params)
-
-driver.get('https://login.11st.co.kr/auth/front/selleroffice/login.tmall')
-
-driver.find_element_by_id('user-id').send_keys(config.ST_LOGIN['id'])
-driver.find_element_by_id('passWord').send_keys(config.ST_LOGIN['password'])
-driver.find_element_by_xpath('/html/body/div/form[1]/fieldset/button').click()
-time.sleep(5)
-driver.get('https://soffice.11st.co.kr/escrow/OrderCancelManageList2nd.tmall')
-time.sleep(5)
-
-
-def findSelect(xpath, value):
-    el = Select(driver.find_element_by_xpath(xpath))
-    el.select_by_value(value)
-
-
-findSelect('//select[@id="key"]', '02')
-findSelect('//select[@id="shDateType"]', '07')
-findSelect('//select[@id="sltDuration"]', 'TODAY')
-time.sleep(2)
-driver.find_element_by_xpath('//*[@id="search_area"]/form/div[1]/div[2]/div[2]/div[2]/div/button[1]').click()
-time.sleep(3)
-
-driver.find_element_by_xpath('//*[@id="search_area"]/form/div[3]/div/a').click()
-time.sleep(2)
-driver.get('https://soffice.11st.co.kr/escrow/OrderingLogistics.tmall')
-time.sleep(2)
-findUp = driver.find_element_by_id('goDlvTmpltPopup')
-driver.switch_to.frame(findUp.find_element_by_tag_name('iframe'))
-driver.find_element_by_xpath('//*[@id="ext-gen6"]/div/button').click()
-time.sleep(1)
-driver.switch_to.default_content()
-driver.find_element_by_xpath('//*[@id="order_good_301"]').click()
-time.sleep(2)
-driver.find_element_by_xpath('//*[@id="searchform"]/div/div[1]/div[6]/div/a[2]').click()
-time.sleep(2)
-print(driver.window_handles)
-driver.switch_to.window(driver.window_handles[1])
-driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
-time.sleep(5)
-driver.close()
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
+totalNow = makeToday.strftime("%Y-%m-%d")
+makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
+endNow = makeLastMonth.strftime("%Y-%m-%d")
 
-stOriExcel = config.ST_LOGIN['excelPath'] + "39731068_sellListlistType.xls"
-stResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xls'
-stResultXlsx = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xlsx'
 
-stLogiOriExcel = config.ST_LOGIN['excelPath'] + "39731068_logistics.xls"
-stLogiResultExcel = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xls'
-stLogiResultXlsx = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xlsx'
+def startCrawler(downloadPath, driverPath):
+    options = Options()
+    # options.add_argument('--headless')
+    # options.add_argument("disable-gpu")
+    prefs = {
+        "download.default_directory": downloadPath,
+        "directory_upgrade": True
+    }
+    options.add_experimental_option("prefs", prefs)
+    driver = webdriver.Chrome(executable_path=driverPath, options=options)
 
-os.rename(stOriExcel, stResultExcel)
-os.rename(stLogiOriExcel, stLogiResultExcel)
+    # driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+    # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
+    # command_result = driver.execute("send_command", params)
 
-p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
-p.save_book_as(file_name=stLogiResultExcel, dest_file_name=stLogiResultXlsx)
+    driver.get('https://login.11st.co.kr/auth/front/selleroffice/login.tmall')
 
-path = stResultXlsx
+    driver.find_element_by_id('user-id').send_keys(config.ST_LOGIN['id'])
+    driver.find_element_by_id('passWord').send_keys(config.ST_LOGIN['password'])
+    driver.find_element_by_xpath('/html/body/div/form[1]/fieldset/button').click()
+    time.sleep(5)
+    driver.get('https://soffice.11st.co.kr/escrow/OrderCancelManageList2nd.tmall')
+    time.sleep(5)
 
-wb = load_workbook(path)
+    def findSelect(xpath, value):
+        el = Select(driver.find_element_by_xpath(xpath))
+        el.select_by_value(value)
 
-ws = wb.active
+    findSelect('//select[@id="key"]', '02')
+    findSelect('//select[@id="shDateType"]', '07')
+    findSelect('//select[@id="sltDuration"]', 'TODAY')
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[@id="search_area"]/form/div[1]/div[2]/div[2]/div[2]/div/button[1]').click()
+    time.sleep(3)
 
-db = pymysql.connect(
-    host=config.DATABASE_CONFIG['host'],
-    user=config.DATABASE_CONFIG['user'],
-    password=config.DATABASE_CONFIG['password'],
-    db=config.DATABASE_CONFIG['db'],
-    charset=config.DATABASE_CONFIG['charset'],
-    autocommit=True)
-cursor = db.cursor()
+    driver.find_element_by_xpath('//*[@id="search_area"]/form/div[3]/div/a').click()
+    time.sleep(2)
+    driver.get('https://soffice.11st.co.kr/escrow/OrderingLogistics.tmall')
+    time.sleep(2)
+    findUp = driver.find_element_by_id('goDlvTmpltPopup')
+    driver.switch_to.frame(findUp.find_element_by_tag_name('iframe'))
+    driver.find_element_by_xpath('//*[@id="ext-gen6"]/div/button').click()
+    time.sleep(1)
+    driver.switch_to.default_content()
+    driver.find_element_by_xpath('//*[@id="order_good_301"]').click()
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[@id="searchform"]/div/div[1]/div[6]/div/a[2]').click()
+    time.sleep(2)
 
-sql = '''INSERT INTO `excel`.`11st_cancel` (
-        state,
-        channel_order_number,
-        channel_order_list,
-        claim_request,
-        claim_complete,
-        product_name,
-        product_option,
-        quantity,
-        order_amount,
-        cancel_reason,
-        cancel_detail_reason,
-        cancel_response,
-        add_delivery_fees,
-        cancel_complete_date,
-        payment_at,
-        product_amount,
-        product_option_amount,
-        cancel_complete_user
-        ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE state = %s, claim_request = %s, claim_complete = %s, cancel_reason = %s,
-        cancel_detail_reason = %s, cancel_response =%s, add_delivery_fees = %s, cancel_complete_date = %s,
-        cancel_complete_user = %s
-         '''
-maxRow = ws.max_row - 2
-print(maxRow)
-for row in ws.iter_rows(min_row=7, max_row=maxRow):
-    state = replacenone(row[1].value)
-    channel_order_number = replacenone(row[2].value)
-    channel_order_list = replaceint(row[3].value)
-    claim_request = row[4].value
-    claim_complete = row[5].value
-    product_name = replacenone(row[6].value)
-    product_option = replacenone(row[7].value)
-    quantity = replaceint(row[8].value)
-    order_amount = replaceint(row[13].value)
-    cancel_reason = replacenone(row[16].value)
-    cancel_detail_reason = replacenone(row[17].value)
-    cancel_response = replacenone(row[18].value)
-    add_delivery_fees = replaceint(row[19].value)
-    cancel_complete_date = replacedate(row[20].value)
-    payment_at = row[31].value
-    product_amount = replaceint(row[33].value)
-    product_option_amount = replaceint(row[34].value)
-    cancel_complete_user = replacenone(row[37].value)
+    print(driver.window_handles)
+    driver.switch_to.window(driver.window_handles[1])
+    driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
+    time.sleep(5)
+    driver.close()
+    print(driver.window_handles)
+    driver.switch_to.window(driver.window_handles[0])
+    driver.get('https://partner.brich.co.kr/login')
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/button[2]').click()
+    time.sleep(2)
+    driver.find_element_by_xpath(
+        '//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[1]').send_keys(
+        config.BFLOW_LOGIN['id'])
+    driver.find_element_by_xpath(
+        '//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[2]').send_keys(
+        config.BFLOW_LOGIN['password'])
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
+    time.sleep(4)
+    driver.minimize_window()
+    # driver.get('https://partner.brich.co.kr/order/all#/')
+    # time.sleep(5)
+    # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[5]/div/div[5]/input').click()
+    # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[10]/div/span/button[5]').click()
+    # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[11]/div/button[1]').click()
+    # time.sleep(5)
+    # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[2]/div[2]/div[2]/button[2]').click()
 
-    values = (
-        state,
-        channel_order_number,
-        channel_order_list,
-        claim_request,
-        claim_complete,
-        product_name,
-        product_option,
-        quantity,
-        order_amount,
-        cancel_reason,
-        cancel_detail_reason,
-        cancel_response,
-        add_delivery_fees,
-        cancel_complete_date,
-        payment_at,
-        product_amount,
-        product_option_amount,
-        cancel_complete_user,
-        state,
-        claim_request,
-        claim_complete,
-        cancel_reason,
-        cancel_detail_reason,
-        cancel_response,
-        add_delivery_fees,
-        cancel_complete_date,
-        cancel_complete_user
-    )
-    cursor.execute(sql, values)
-    print(sql, values)
+    driver.get(f'''
+        https://partner.brich.co.kr/api/orders-excel-download?type=order&start={endNow}
+        &end={totalNow}&condition=code&content=&channel%5B%5D=11st&period=orders.created_at&orderby=orders.created_at&
+        per_page=10&selectedProviderOptimusId=&selectedBrandOptimusId=&selectedCrawlingTarget=&productName=&
+        productId=&isTodayDelivery=&isHold=&coupon_optimus_id=&refererDomain=''')
+    time.sleep(60)
+    driver.quit()
 
-path = stLogiResultXlsx
+
+def changeFileToXlsx(originalName, resultName):
+    stOriExcel = config.ST_LOGIN['excelPath'] + originalName
+    stResultExcel = config.ST_LOGIN['excelPath'] + resultName + now + '.xls'
+    stResultXlsx = config.ST_LOGIN['excelPath'] + resultName + now + '.xlsx'
+
+    os.rename(stOriExcel, stResultExcel)
+
+    p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
+    return stResultXlsx
+
+
+def bflowChangeFile(originalName, resultName):
+    bflowOriExcel = config.ST_LOGIN['excelPath'] + originalName + endNow + "_" + totalNow + ".xlsx"
+    bflowResultExcel = config.ST_LOGIN['excelPath'] + resultName + now + '.xlsx'
+
+    os.rename(bflowOriExcel, bflowResultExcel)
+    return bflowResultExcel
+
+
+startCrawler(config.ST_LOGIN['excelPath'], '../py_option/chromedriver')
+cancelFile = changeFileToXlsx('39731068_sellListlistType.xls', '11st_Cancel_')
+logiFile = changeFileToXlsx('39731068_logistics.xls', '11st_logi_')
+bflowFile = bflowChangeFile('orders_', '11st_Cancel_order')
+
+cancelList = (
+        'state',
+        'channel_order_number',
+        'channel_order_list',
+        'claim_request',
+        'claim_complete',
+        'product_name',
+        'product_option',
+        'quantity',
+        'order_amount',
+        'cancel_reason',
+        'cancel_detail_reason',
+        'cancel_response',
+        'add_delivery_fees',
+        'cancel_complete_date',
+        'payment_at',
+        'product_amount',
+        'product_option_amount',
+        'cancel_complete_user')
+
+
+def insertXlsxtoDb(fileName, tableName, columnLists):
+    path = fileName
+    wb = load_workbook(path)
+
+    ws = wb.active
+
+    db = pymysql.connect(
+        host=config.DATABASE_CONFIG['host'],
+        user=config.DATABASE_CONFIG['user'],
+        password=config.DATABASE_CONFIG['password'],
+        db=config.DATABASE_CONFIG['db'],
+        charset=config.DATABASE_CONFIG['charset'],
+        autocommit=True)
+    cursor = db.cursor()
+    print(columnLists)
+    sql = f'INSERT INTO `excel`.`{tableName}`'
+    value = 'VALUES (' + '%s,' * len(columnLists) + ')ON DUPLICATE KEY UPDATE'
+    ''' state = %s, claim_request = %s, claim_complete = %s, cancel_reason = %s,
+            cancel_detail_reason = %s, cancel_response =%s, add_delivery_fees = %s, cancel_complete_date = %s,
+            cancel_complete_user = %s
+             '''
+    print(sql, columnLists, value)
+    resultSql = sql + str(columnLists) + value
+    print(resultSql)
+
+    maxRow = ws.max_row - 2
+
+    for row in ws.iter_rows(min_row=7, max_row=maxRow):
+        state = replacenone(row[1].value)
+        channel_order_number = replacenone(row[2].value)
+        channel_order_list = replaceint(row[3].value)
+        claim_request = row[4].value
+        claim_complete = row[5].value
+        product_name = replacenone(row[6].value)
+        product_option = replacenone(row[7].value)
+        quantity = replaceint(row[8].value)
+        order_amount = replaceint(row[13].value)
+        cancel_reason = replacenone(row[16].value)
+        cancel_detail_reason = replacenone(row[17].value)
+        cancel_response = replacenone(row[18].value)
+        add_delivery_fees = replaceint(row[19].value)
+        cancel_complete_date = replacedate(row[20].value)
+        payment_at = row[31].value
+        product_amount = replaceint(row[33].value)
+        product_option_amount = replaceint(row[34].value)
+        cancel_complete_user = replacenone(row[37].value)
+
+        values = (
+            state,
+            channel_order_number,
+            channel_order_list,
+            claim_request,
+            claim_complete,
+            product_name,
+            product_option,
+            quantity,
+            order_amount,
+            cancel_reason,
+            cancel_detail_reason,
+            cancel_response,
+            add_delivery_fees,
+            cancel_complete_date,
+            payment_at,
+            product_amount,
+            product_option_amount,
+            cancel_complete_user,
+            state,
+            claim_request,
+            claim_complete,
+            cancel_reason,
+            cancel_detail_reason,
+            cancel_response,
+            add_delivery_fees,
+            cancel_complete_date,
+            cancel_complete_user
+        )
+        cursor.execute(resultSql, values)
+        print(resultSql, values)
+
+
+path = logiFile
 
 wb = load_workbook(path)
 
@@ -248,44 +302,8 @@ for row in ws.iter_rows(min_row=3):
     print(orderSql, orderValues)
 db.close()
 
-# 11번가 끝 bflow 시
-print(driver.window_handles)
-driver.switch_to.window(driver.window_handles[0])
-driver.get('https://partner.brich.co.kr/login')
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/button[2]').click()
-time.sleep(2)
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[1]').send_keys(
-    config.BFLOW_LOGIN['id'])
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[2]').send_keys(
-    config.BFLOW_LOGIN['password'])
-time.sleep(1)
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
-time.sleep(4)
-driver.minimize_window()
-# driver.get('https://partner.brich.co.kr/order/all#/')
-# time.sleep(5)
-# driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[5]/div/div[5]/input').click()
-# driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[10]/div/span/button[5]').click()
-# driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[11]/div/button[1]').click()
-# time.sleep(5)
-# driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[2]/div[2]/div[2]/button[2]').click()
 
-totalNow = makeToday.strftime("%Y-%m-%d")
-makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
-endNow = makeLastMonth.strftime("%Y-%m-%d")
 
-driver.get(f'''
-    https://partner.brich.co.kr/api/orders-excel-download?type=order&start={endNow}
-    &end={totalNow}&condition=code&content=&channel%5B%5D=11st&period=orders.created_at&orderby=orders.created_at&
-    per_page=10&selectedProviderOptimusId=&selectedBrandOptimusId=&selectedCrawlingTarget=&productName=&
-    productId=&isTodayDelivery=&isHold=&coupon_optimus_id=&refererDomain=
-''')
-time.sleep(60)
-driver.quit()
-bflowOriExcel = config.ST_LOGIN['excelPath'] + "orders_" + endNow + "_" + totalNow + ".xlsx"
-bflowResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_order' + now + '.xlsx'
-
-os.rename(bflowOriExcel, bflowResultExcel)
 
 path = bflowResultExcel
 
@@ -301,6 +319,7 @@ db = pymysql.connect(
     charset=config.DATABASE_CONFIG['charset'],
     autocommit=True)
 cursor = db.cursor()
+
 
 sql = '''INSERT INTO `excel`.`sell` (
         product_order_number,
@@ -400,6 +419,7 @@ now = makeToday.strftime("%m%d_%H%M")
 totalNow = makeToday.strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
+
 
 cancelList = f'''
             select s.`product_order_number`, c.`channel_order_number`, s.`product_option` 
@@ -552,4 +572,6 @@ wb.save(result)
 wb.close()
 print(result)
 db.close()
+
+
 
