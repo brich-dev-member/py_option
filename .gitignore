@@ -20,3 +20,5 @@ temp
 __pycache__/
 option_slice.spec
 chromedriver
+
+dockerfile
