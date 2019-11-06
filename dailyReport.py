@@ -19,7 +19,7 @@ db = pymysql.connect(
     autocommit=True)
 cursor = db.cursor()
 
-reportMonth = 9, 10
+reportMonth = 10, 11
 
 weekSql =f'''
         SELECT 

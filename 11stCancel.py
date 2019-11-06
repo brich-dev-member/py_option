@@ -89,28 +89,35 @@ time.sleep(2)
 driver.find_element_by_xpath('//*[@id="searchform"]/div/div[1]/div[6]/div/a[2]').click()
 time.sleep(2)
 print(driver.window_handles)
-driver.switch_to.window(driver.window_handles[1])
+driver.switch_to.window(driver.window_handles[-1])
 driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
-time.sleep(5)
+time.sleep(10)
 driver.close()
+
+# 날짜 관련
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
+totalNow = makeToday.strftime("%Y-%m-%d")
+makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
+endNow = makeLastMonth.strftime("%Y-%m-%d")
 
-stOriExcel = config.ST_LOGIN['excelPath'] + "39731068_sellListlistType.xls"
-stResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xls'
-stResultXlsx = config.ST_LOGIN['excelPath'] + '11st_Cancel_' + now + '.xlsx'
 
-stLogiOriExcel = config.ST_LOGIN['excelPath'] + "39731068_logistics.xls"
-stLogiResultExcel = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xls'
-stLogiResultXlsx = config.ST_LOGIN['excelPath'] + '11st_logi_' + now + '.xlsx'
+def changeFileToXlsx(originalName, resultName):
+    stOriExcel = config.ST_LOGIN['excelPath'] + originalName
+    stResultExcel = config.ST_LOGIN['excelPath'] + resultName + now + '.xls'
+    stResultXlsx = config.ST_LOGIN['excelPath'] + resultName + now + '.xlsx'
 
-os.rename(stOriExcel, stResultExcel)
-os.rename(stLogiOriExcel, stLogiResultExcel)
+    os.rename(stOriExcel, stResultExcel)
 
-p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
-p.save_book_as(file_name=stLogiResultExcel, dest_file_name=stLogiResultXlsx)
+    p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
+    return stResultXlsx
 
-path = stResultXlsx
+
+cancelFile = changeFileToXlsx('39731068_sellListlistType.xls', '11st_Cancel_')
+logiFile = changeFileToXlsx('39731068_logistics.xls', '11st_logi_')
+
+
+path = cancelFile
 
 wb = load_workbook(path)
 
@@ -124,7 +131,8 @@ db = pymysql.connect(
     charset=config.DATABASE_CONFIG['charset'],
     autocommit=True)
 cursor = db.cursor()
-
+delOrder = '''DELETE From  `excel`.`11st_cancel`'''
+cursor.execute(delOrder)
 sql = '''INSERT INTO `excel`.`11st_cancel` (
         state,
         channel_order_number,
@@ -204,28 +212,34 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     cursor.execute(sql, values)
     print(sql, values)
 
-path = stLogiResultXlsx
+path = logiFile
 
 wb = load_workbook(path)
 
 ws = wb.active
 
+delOrder = '''DELETE From `excel`.`channel_order` where channel = "11st"'''
+cursor.execute(delOrder)
 orderSql = '''
-        INSERT INTO `excel`.`11st_order` (
+        INSERT INTO `excel`.`channel_order` (
         state,
         channel_order_number,
         channel_order_list,
         product_name,
         product_option,
         quantity,
-        payment_at
+        payment_at,
+        channel,
+        fcode
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE state = %s
         '''
 maxRow = ws.max_row - 2
 
-for row in ws.iter_rows(min_row=3):
+rex = re.compile('_F[0-9]+_')
+
+for row in ws.iter_rows(min_row=3, max_row=maxRow):
     state = replacenone(row[1].value)
     channel_order_number = replacenone(row[2].value)
     channel_order_list = replaceint(row[3].value)
@@ -233,6 +247,92 @@ for row in ws.iter_rows(min_row=3):
     product_option = replacenone(row[7].value)
     quantity = replaceint(row[8].value)
     payment_at = row[5].value
+    channel = '11st'
+    if product_option is None:
+        fcode = None
+    else:
+        fcode = rex.search(product_option).group()
+    orderValues = (
+        state,
+        channel_order_number,
+        channel_order_list,
+        product_name,
+        product_option,
+        quantity,
+        payment_at,
+        channel,
+        fcode,
+        state
+
+    )
+    cursor.execute(orderSql, orderValues)
+    print(orderSql, orderValues)
+
+# 11번가 끝
+
+# 지마켓 시작
+driver.switch_to.window(driver.window_handles[0])
+driver.get('https://www.esmplus.com/Member/SignIn/LogOn')
+driver.find_element_by_xpath('//*[@id="rdoSiteSelect" and @value="GMKT"]').click()
+driver.find_element_by_xpath('//*[@id="SiteId"]').send_keys(config.ESM_LOGIN['id'])
+driver.find_element_by_xpath('//*[@id="SitePassword"]').send_keys(config.ESM_LOGIN['password'])
+driver.find_element_by_xpath('//*[@id="btnSiteLogOn"]').click()
+time.sleep(3)
+windowLists = driver.window_handles
+for windowList in windowLists[1:]:
+    driver.switch_to.window(driver.window_handles[-1])
+    driver.close()
+
+driver.switch_to.window(driver.window_handles[0])
+driver.get('http://www.esmplus.com/Member/CustomerService/FindCustomer?menuCode=TDM144')
+driver.find_element_by_xpath('//*[@id="contents"]/div/div[2]/ul/li[1]/span/span[5]/a').click()
+driver.find_element_by_xpath('//*[@id="btnSearch"]').click()
+driver.find_element_by_xpath('//*[@id="contents"]/div/div[3]/a').click()
+time.sleep(15)
+
+gmarketFile = changeFileToXlsx('findcustomer_' + totalNow +'.xls', 'gmarket_state_')
+
+path = gmarketFile
+
+wb = load_workbook(path)
+
+ws = wb.active
+
+delOrder = '''DELETE From `excel`.`channel_order` where channel = "gmarket" or channel = "auction"'''
+cursor.execute(delOrder)
+orderSql = '''
+        INSERT INTO `excel`.`channel_order` (
+        state,
+        channel_order_number,
+        channel_order_list,
+        product_name,
+        product_option,
+        quantity,
+        payment_at,
+        channel,
+        fcode
+        ) VALUES (
+        %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE state = %s
+        '''
+maxRow = ws.max_row - 2
+
+for row in ws.iter_rows(min_row=2):
+    state = replacenone(row[12].value)
+    channel_order_number = replacenone(row[2].value)
+    channel_order_list = replacenone(row[3].value)
+    product_name = replacenone(row[4].value)
+    product_option = None
+    quantity = replaceint(row[6].value)
+    payment_at = replacenone(row[7].value)
+    if channel_order_list[0] == 'B':
+        channel = 'auction'
+    else:
+        channel = 'gmarket'
+    if product_option is None:
+        fcode = None
+    else:
+        fcode = rex.search(product_option).group()
 
     orderValues = (
         state,
@@ -242,13 +342,17 @@ for row in ws.iter_rows(min_row=3):
         product_option,
         quantity,
         payment_at,
+        channel,
+        fcode,
         state
+
     )
     cursor.execute(orderSql, orderValues)
     print(orderSql, orderValues)
 db.close()
+# 지마켓 끝
 
-# 11번가 끝 bflow 시
+# 비플로우 시작
 print(driver.window_handles)
 driver.switch_to.window(driver.window_handles[0])
 driver.get('https://partner.brich.co.kr/login')
@@ -261,7 +365,6 @@ driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/d
 time.sleep(1)
 driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
 time.sleep(4)
-driver.minimize_window()
 # driver.get('https://partner.brich.co.kr/order/all#/')
 # time.sleep(5)
 # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[1]/div[2]/div/div[5]/div/div[5]/input').click()
@@ -270,17 +373,15 @@ driver.minimize_window()
 # time.sleep(5)
 # driver.find_element_by_xpath('//*[@id="app"]/div[1]/div/div/div[2]/div[2]/div[2]/button[2]').click()
 
-totalNow = makeToday.strftime("%Y-%m-%d")
-makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
-endNow = makeLastMonth.strftime("%Y-%m-%d")
-
 driver.get(f'''
     https://partner.brich.co.kr/api/orders-excel-download?type=order&start={endNow}
-    &end={totalNow}&condition=code&content=&channel%5B%5D=11st&period=orders.created_at&orderby=orders.created_at&
+    &end={totalNow}&condition=code&content=&
+    channel%5B%5D=auction&channel%5B%5D=gmarket&channel%5B%5D=11st&channel%5B%5D=g9&
+    period=orders.created_at&orderby=orders.created_at&
     per_page=10&selectedProviderOptimusId=&selectedBrandOptimusId=&selectedCrawlingTarget=&productName=&
     productId=&isTodayDelivery=&isHold=&coupon_optimus_id=&refererDomain=
 ''')
-time.sleep(60)
+time.sleep(120)
 driver.quit()
 bflowOriExcel = config.ST_LOGIN['excelPath'] + "orders_" + endNow + "_" + totalNow + ".xlsx"
 bflowResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_order' + now + '.xlsx'
@@ -330,11 +431,12 @@ sql = '''INSERT INTO `excel`.`sell` (
         provider_number,
         channel_order_number,
         week,
-        month
+        month,
+        fcode
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE payment_at = %s, order_state = %s, claim = %s, delivery_at = %s, delivery_complete = %s,
-        order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s
+        order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, fcode = %s
          '''
 
 iter_row = iter(ws.rows)
@@ -376,13 +478,16 @@ for row in rows:
     else:
         week = None
         month = None
-
+    if product_option is None:
+        fcode = None
+    else:
+        fcode = rex.search(product_option).group()
     values = (
         product_order_number, order_number, payment_at, order_state, claim, provider_name, product_name, product_option,
         channel, product_number, product_amount, option_amount, seller_discount, quantity, total_amount, delivery_at,
         delivery_complete, order_complete_at, auto_complete_at, category_number, buyer_email, buyer_gender, buyer_age,
-        crawler, provider_number, channel_order_number, week, month, payment_at, order_state, claim, delivery_at,
-        delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month,
+        crawler, provider_number, channel_order_number, week, month, fcode, payment_at, order_state, claim, delivery_at,
+        delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month, fcode,
     )
     cursor.execute(sql, values)
 
@@ -409,8 +514,6 @@ cancelList = f'''
 cursor.execute(cancelList)
 cancelRows = cursor.fetchall()
 
-p = re.compile('_F[0-9]+_')
-
 wb = Workbook()
 
 ws = wb.active
@@ -421,16 +524,17 @@ for cancelRow in cancelRows:
     if cancelRow[2] is None:
         productOption = None
     else:
-        productOption = p.search(cancelRow[2]).group()
+        productOption = rex.search(cancelRow[2]).group()
     print(productOrderNumber)
     print(orderNumber)
     print(productOption)
+
     cancelState = f'''
             select s.`product_order_number`, s.`order_number`,
             c.`channel_order_number`,c.`product_name`,c.`product_option`,s.`claim`,
             s.`order_state`, c.`state`, c.`cancel_reason`, c.`cancel_detail_reason`
             from sell as s join `11st_cancel` as c on s.`channel_order_number` = c.`channel_order_number`
-            where s.`product_order_number` = {productOrderNumber} and c.`product_option` like '%{productOption}%'
+            where s.`product_order_number` = {productOrderNumber} and s.`product_option` like '%{productOption}%'
             '''
     cursor.execute(cancelState)
     cancelNowTotal = cursor.fetchall()
@@ -474,80 +578,197 @@ for cancelRow in cancelRows:
 
             no += 1
 
-result = config.ST_LOGIN['excelPath'] + '11stCancelResult_' + totalNow + "_" + now + '.xlsx'
+result = config.ST_LOGIN['excelPath'] + 'CancelResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
 wb.close()
 
-orderList = f'''
-            select s.`product_order_number`, c.`channel_order_number`, s.`product_option` 
-            from `11st_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
-            where c.`payment_at` >= {endNow} group by s.`product_order_number`;
+sql = '''
+    select `id`, `product_option` from `channel_order`  where channel = '11st'
+    '''
+cursor.execute(sql)
+optionRows = cursor.fetchall()
+rex = re.compile('_F[0-9]+_')
+for optionRow in optionRows:
+    if optionRow is not None:
+        idNo = optionRow[0]
+        fcode = rex.search(optionRow[1]).group()
+    else:
+        fcode = None
+
+    updateSql = '''
+                update `channel_order` set fcode = %s where id = %s
+                '''
+    updateValue = (
+        fcode,
+        idNo
+    )
+    cursor.execute(updateSql, updateValue)
+    print(updateSql,updateValue)
+
+stOrderList = f'''
+            select s.`product_order_number`, c.`channel_order_number`,s.`product_name`,
+            s.`product_option`,s.`channel`, s.`claim`, s.`order_state`, c.`state` 
+            from `channel_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
+            and c.`fcode` = s.`fcode`
+            where c.`payment_at` >= {endNow} and c.`channel` = '11st';
             '''
 
-cursor.execute(orderList)
-orderRows = cursor.fetchall()
-
-p = re.compile('_F[0-9]+_')
+cursor.execute(stOrderList)
+stOrderRows = cursor.fetchall()
 
 wb = Workbook()
 
 ws = wb.active
 no = 2
-for orderRow in orderRows:
-    productOrderNumber = orderRow[0]
-    orderNumber = orderRow[1]
-    if orderRow[2] is None:
-        productOption = None
+for stOrderRow in stOrderRows:
+    productOrderNumber = stOrderRow[0]
+    channelOrderNumber = stOrderRow[1]
+    productName = stOrderRow[2]
+    productOption = stOrderRow[3]
+    claim = stOrderRow[5]
+    orderState = stOrderRow[6]
+    state = stOrderRow[7]
+    channel = stOrderRow[4]
+
+    ws.cell(row=1, column=1).value = '상품주문번호'
+    ws.cell(row=1, column=2).value = '외부채널주문번호'
+    ws.cell(row=1, column=3).value = '상품명'
+    ws.cell(row=1, column=4).value = '상품옵션'
+    ws.cell(row=1, column=5).value = '브리치 주문상태'
+    ws.cell(row=1, column=6).value = '브리치 클레임상태'
+    ws.cell(row=1, column=7).value = '채널 상태'
+    ws.cell(row=1, column=8).value = '채널명'
+
+    if orderState == '배송준비' or orderState == '결제확인' or orderState == '배송지연' and state == '배송준비중':
+        print('skip')
+        continue
     else:
-        productOption = p.search(orderRow[2]).group()
-    print(productOrderNumber)
-    print(orderNumber)
-    print(productOption)
-    orderState = f'''
-            select s.`product_order_number`, s.`order_number`,
-            c.`channel_order_number`,c.`product_name`,c.`product_option`,s.`claim`,
-            s.`order_state`, c.`state`
-            from sell as s join `11st_order` as c on s.`channel_order_number` = c.`channel_order_number`
-            where s.`product_order_number` = {productOrderNumber} and c.`product_option` like '%{productOption}%'
-            '''
-    cursor.execute(orderState)
-    orderNowTotal = cursor.fetchall()
-    print(orderNowTotal)
-    for orderNow in orderNowTotal:
-        product_order_number = orderNow[0]
-        order_number = orderNow[1]
-        channel_order_number = orderNow[2]
-        product_name = orderNow[3]
-        product_option = orderNow[4]
-        claim = orderNow[5]
-        orderState = orderNow[6]
-        state = orderNow[7]
-
-        ws.cell(row=1, column=1).value = '상품주문번호'
-        ws.cell(row=1, column=2).value = '주문번호'
-        ws.cell(row=1, column=3).value = '외부채널주문번호'
-        ws.cell(row=1, column=4).value = '상품명'
-        ws.cell(row=1, column=5).value = '상품옵션'
-        ws.cell(row=1, column=6).value = '브리치 주문상태'
-        ws.cell(row=1, column=7).value = '브리치 클레임상태'
-        ws.cell(row=1, column=8).value = '11번가 상태'
-        print(orderState, state)
-        if orderState == '배송준비' or orderState == '결제확인' or orderState == '배송지연' and state == '배송준비중':
-            print('skip')
-            continue
-        else:
-            ws.cell(row=no, column=1).value = product_order_number
-            ws.cell(row=no, column=2).value = order_number
-            ws.cell(row=no, column=3).value = channel_order_number
-            ws.cell(row=no, column=4).value = product_name
-            ws.cell(row=no, column=5).value = product_option
-            ws.cell(row=no, column=6).value = claim
-            ws.cell(row=no, column=7).value = orderState
-            ws.cell(row=no, column=8).value = state
-
-            no += 1
+        ws.cell(row=no, column=1).value = productOrderNumber
+        ws.cell(row=no, column=2).value = channelOrderNumber
+        ws.cell(row=no, column=3).value = productName
+        ws.cell(row=no, column=4).value = productOption
+        ws.cell(row=no, column=5).value = claim
+        ws.cell(row=no, column=6).value = orderState
+        ws.cell(row=no, column=7).value = state
+        ws.cell(row=no, column=8).value = channel
+        no += 1
 
 result = config.ST_LOGIN['excelPath'] + '11stOrderResult_' + totalNow + "_" + now + '.xlsx'
+wb.save(result)
+wb.close()
+print(result)
+
+ebayOrderList = f'''
+            select s.`product_order_number`, c.`channel_order_number`,s.`product_name`,
+            s.`product_option`, s.`channel`,s.`claim`, s.`order_state`, c.`state` 
+            from `channel_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
+            where c.`payment_at` >= {endNow} and c.`channel` in ('gmarket','auction');
+            '''
+
+cursor.execute(ebayOrderList)
+ebayOrderRows = cursor.fetchall()
+
+wb = Workbook()
+
+ws = wb.active
+no = 2
+
+for ebayOrderRow in ebayOrderRows:
+    productOrderNumber = ebayOrderRow[0]
+    channelOrderNumber = ebayOrderRow[1]
+    productName = ebayOrderRow[2]
+    productOption = ebayOrderRow[3]
+    claim = ebayOrderRow[5]
+    orderState = ebayOrderRow[6]
+    state = ebayOrderRow[7]
+    channel = ebayOrderRow[4]
+
+    ws.cell(row=1, column=1).value = '상품주문번호'
+    ws.cell(row=1, column=2).value = '외부채널주문번호'
+    ws.cell(row=1, column=3).value = '상품명'
+    ws.cell(row=1, column=4).value = '상품옵션'
+    ws.cell(row=1, column=5).value = '브리치 주문상태'
+    ws.cell(row=1, column=6).value = '브리치 클레임상태'
+    ws.cell(row=1, column=7).value = '채널 상태'
+    ws.cell(row=1, column=8).value = '채널명'
+
+    # 비플로우 결제취소 / 채널상태 취소요청 , 취소중 , 반품완료  => 불필요
+    # 비플로우 교환 / 채널상태 배송중, 교환요청 , 구매결정완료 => 불필요
+    # 비플로우 반품 / 채널상태 반품보류 , 반품요청 = > 불필요
+    # 비플로우 배송준비 / 채널 상태 배송지연 / 발송예정 = > 불필요
+    # 비플로우 배송지연 / 채널상태 배송지연 / 발송예정  = > 불필요
+    if state == '교환수거완료'\
+            or state == '교환수거중'\
+            or state == '교환완료'\
+            or state == '배송중'\
+            or state == '교환요청'\
+            or state == '구매결정완료'\
+            and orderState == '교환':
+        print('skip')
+        continue
+    elif state == '반품수거완료'\
+            or state == '반품수거중'\
+            or state == '반품완료'\
+            or state == '반품보류'\
+            or state == '반품요청'\
+            and orderState == '반품':
+        print('skip')
+        continue
+    elif state == '입금확인'\
+            or state == '주문확인'\
+            or state == '배송지연/발송예정'\
+            and orderState == '배송준비'\
+            or orderState == '결제확인':
+        print('skip')
+        continue
+    elif state == '취소완료'\
+            or state == '환불완료'\
+            or state == '취소요청'\
+            or state == '취소중'\
+            or state == '반품완료'\
+            and orderState == '결제취소':
+        print('skip')
+        continue
+    elif state == '배송중' and orderState == '출고완료' or orderState == '배송중':
+        print('skip')
+        continue
+    elif state == '주문확인' or state == '배송지연/발송예정' and orderState == '배송지연':
+        print('skip')
+        continue
+    elif state == '배송완료' or state == '구매결정완료' and orderState == '배송완료':
+        print('skip')
+        continue
+    elif state == '미입금구매취소':
+        print('skip')
+        continue
+    elif state == '입금대기':
+        print('skip')
+        continue
+    elif state == '판매자송금':
+        print('skip')
+        continue
+    elif state == '반품보류' or state == '미수취신고':
+        ws.cell(row=no, column=1).value = productOrderNumber
+        ws.cell(row=no, column=2).value = channelOrderNumber
+        ws.cell(row=no, column=3).value = productName
+        ws.cell(row=no, column=4).value = productOption
+        ws.cell(row=no, column=5).value = claim
+        ws.cell(row=no, column=6).value = orderState
+        ws.cell(row=no, column=7).value = state
+        ws.cell(row=no, column=8).value = channel
+        no += 1
+    else:
+        ws.cell(row=no, column=1).value = productOrderNumber
+        ws.cell(row=no, column=2).value = channelOrderNumber
+        ws.cell(row=no, column=3).value = productName
+        ws.cell(row=no, column=4).value = productOption
+        ws.cell(row=no, column=5).value = claim
+        ws.cell(row=no, column=6).value = orderState
+        ws.cell(row=no, column=7).value = state
+        ws.cell(row=no, column=8).value = channel
+        no += 1
+
+result = config.ST_LOGIN['excelPath'] + 'ebayOrderResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
 wb.close()
 print(result)

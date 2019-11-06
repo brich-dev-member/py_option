@@ -18,9 +18,17 @@ makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
 
 fileResults = os.listdir(config.ST_LOGIN['excelPath'])
-
+print(sorted(fileResults, reverse=True))
 cancelResultLists = []
-orderResultLists = []
+stOrderResultLists = []
+eabyOrderResultLists = []
+
+
+def findFile(filename, listName):
+    if filename == a[0]:
+        if a[1] == totalNow:
+            listName.append(result)
+
 
 for fileResult in fileResults:
     result = os.path.join(config.ST_LOGIN['excelPath'], fileResult)
@@ -28,37 +36,52 @@ for fileResult in fileResults:
     ext = os.path.split(result)
     a = ext[-1].split("_")
     b = now.split("_")
-    print(b[0])
-    print(b[1][:2], a[-1][:2])
-    if '11stCancelResult' in a[0]:
-        if b[0] == a[-2] and b[1][:2] == a[-1][:2]:
-            cancelResultLists.append(result)
-    elif '11stOrderResult' in a[0]:
-        if b[0] == a[-2] and b[1][:2] == a[-1][:2]:
-            orderResultLists.append(result)
-print(cancelResultLists, orderResultLists)
-wb = load_workbook(cancelResultLists[0])
+    findFile('CancelResult', cancelResultLists)
+    findFile('stOrderResult', stOrderResultLists)
+    findFile('ebayOrderResult', eabyOrderResultLists)
+
+
+print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
+maxCancel = max(cancelResultLists)
+maxStOrder = max(stOrderResultLists)
+maxEbayOrder = max(eabyOrderResultLists)
+print(maxCancel, maxStOrder, maxEbayOrder)
+wb = load_workbook(maxCancel)
 ws = wb.active
 cancelRow = str(ws.max_row - 1)
-wb = load_workbook(orderResultLists[0])
+wb = load_workbook(maxStOrder)
 ws = wb.active
-orderRow = str(ws.max_row - 1)
-cancelSendResult = open(cancelResultLists[0], 'rb')
-orderSendResult = open(orderResultLists[0], 'rb')
-cancelTitle = '11stCancelResult_' + now + '총' + cancelRow + '건'
-orderTitle = '11stOrderResult_' + now + '총' + orderRow + '건'
+stOrderRow = str(ws.max_row - 1)
+wb = load_workbook(maxEbayOrder)
+ws = wb.active
+ebayOrderRow = str(ws.max_row - 1)
+cancelSendResult = open(maxCancel, 'rb')
+stOrderSendResult = open(stOrderRow, 'rb')
+ebayOrderSendResult = open(ebayOrderRow, 'rb')
+cancelTitle = 'CancelResult_' + now + '총' + cancelRow + '건'
+stOrderTitle = '11stChannelOrderResult_' + now + '총' + stOrderRow + '건'
+ebayOrderTitle = 'ebayChannelOrderResult_' + now + '총' + ebayOrderRow + '건'
 print(cancelSendResult)
+print(stOrderSendResult)
+print(ebayOrderSendResult)
+
 slack = Slacker(config.SLACK_API['token'])
 slack.files.upload(
     file_=cancelSendResult,
     channels=config.SLACK_API['channels'],
     title=cancelTitle,
 )
-time.sleep(2)
+time.sleep(1)
 slack.files.upload(
-    file_=orderSendResult,
+    file_=stOrderSendResult,
     channels=config.SLACK_API['channels'],
-    title=orderTitle,
+    title=stOrderTitle
+)
+time.sleep(1)
+slack.files.upload(
+    file_=ebayOrderSendResult,
+    channels=config.SLACK_API['channels'],
+    title=ebayOrderTitle
 )
 # server = smtplib.SMTP('smtp.gmail.com', 587)
 # server.starttls()
