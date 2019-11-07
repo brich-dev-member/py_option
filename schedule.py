@@ -21,7 +21,7 @@ def checkSchedule():
     makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
     endNow = makeLastMonth.strftime("%Y-%m-%d")
     if makeWeek not in ('5', '6'):
-        if makeTime == '11:00:00' or makeTime == '15:12:00' or makeTime == '17:10:00':
+        if makeTime == '11:00:00' or makeTime == '14:00:00' or makeTime == '17:00:00':
             runFile('11stCancel.py')
             runFile('send11st.py')
         else:

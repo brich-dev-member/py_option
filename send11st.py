@@ -37,7 +37,7 @@ for fileResult in fileResults:
     a = ext[-1].split("_")
     b = now.split("_")
     findFile('CancelResult', cancelResultLists)
-    findFile('stOrderResult', stOrderResultLists)
+    findFile('11stOrderResult', stOrderResultLists)
     findFile('ebayOrderResult', eabyOrderResultLists)
 
 
@@ -56,8 +56,8 @@ wb = load_workbook(maxEbayOrder)
 ws = wb.active
 ebayOrderRow = str(ws.max_row - 1)
 cancelSendResult = open(maxCancel, 'rb')
-stOrderSendResult = open(stOrderRow, 'rb')
-ebayOrderSendResult = open(ebayOrderRow, 'rb')
+stOrderSendResult = open(maxStOrder, 'rb')
+ebayOrderSendResult = open(maxEbayOrder, 'rb')
 cancelTitle = 'CancelResult_' + now + '총' + cancelRow + '건'
 stOrderTitle = '11stChannelOrderResult_' + now + '총' + stOrderRow + '건'
 ebayOrderTitle = 'ebayChannelOrderResult_' + now + '총' + ebayOrderRow + '건'
