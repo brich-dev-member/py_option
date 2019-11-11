@@ -112,16 +112,35 @@ for idx, findProduct in enumerate(findProducts):
 
         if ebayState == '판매중지' or dealFees < 4:
             print('정상 또는 판매중지')
+            # slack.chat.post_message(
+            #     channel='개발이슈없어요',
+            #     text=
+            #     f'''
+            #     #딜 수수료 오류 건 입니다.
+            #     이베이 상품번호 : {ebayProductNumber}\n
+            #     채널명 : {shop}\n
+            #     업체명 : {providerName}\n
+            #     이베이 상품상태 : {ebayState}\n
+            #     이베이 상품명 : {productName}\n
+            #     수수료 : {dealFees} %\n
+            #     '''
+            # )
             time.sleep(3)
             continue
         else:
             slack.chat.post_message(
-                '#개발이슈 없어요',
-                '이베이 상품번호 : ' + ebayProductNumber + '\n'
-                '이베이 상품상태 : ' + ebayState + '\n'
-                '수수료 : ' + dealFees
+                channel='개발이슈없어요',
+                text=
+                f'''
+                #딜 수수료 오류 건 입니다.
+                이베이 상품번호 : {ebayProductNumber}\n
+                채널명 : {shop}\n
+                업체명 : {providerName}\n
+                이베이 상품상태 : {ebayState}\n
+                이베이 상품명 : {productName}\n                           
+                수수료 : {dealFees} %\n
+                '''
             )
-
             time.sleep(3)
 
 driver.close()

@@ -91,7 +91,7 @@ time.sleep(2)
 print(driver.window_handles)
 driver.switch_to.window(driver.window_handles[-1])
 driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
-time.sleep(10)
+time.sleep(15)
 driver.close()
 
 # 날짜 관련
@@ -589,11 +589,13 @@ cursor.execute(sql)
 optionRows = cursor.fetchall()
 rex = re.compile('_F[0-9]+_')
 for optionRow in optionRows:
-    if optionRow is not None:
-        idNo = optionRow[0]
-        fcode = rex.search(optionRow[1]).group()
-    else:
+    idNo = optionRow[0]
+    fcodeText = optionRow[1]
+    if fcodeText is None:
         fcode = None
+    elif fcodeText is not None:
+        fcodeText = rex.search(optionRow[1])
+        fcode = fcodeText.group()
 
     updateSql = '''
                 update `channel_order` set fcode = %s where id = %s
@@ -603,7 +605,7 @@ for optionRow in optionRows:
         idNo
     )
     cursor.execute(updateSql, updateValue)
-    print(updateSql,updateValue)
+    print(updateSql, updateValue)
 
 stOrderList = f'''
             select s.`product_order_number`, c.`channel_order_number`,s.`product_name`,
