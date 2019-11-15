@@ -87,11 +87,11 @@ driver.switch_to.default_content()
 driver.find_element_by_xpath('//*[@id="order_good_301"]').click()
 time.sleep(2)
 driver.find_element_by_xpath('//*[@id="searchform"]/div/div[1]/div[6]/div/a[2]').click()
-time.sleep(2)
+time.sleep(4)
 print(driver.window_handles)
 driver.switch_to.window(driver.window_handles[-1])
 driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
-time.sleep(15)
+time.sleep(60)
 driver.close()
 
 # 날짜 관련
@@ -237,7 +237,7 @@ orderSql = '''
         '''
 maxRow = ws.max_row - 2
 
-rex = re.compile('_F[0-9]+_')
+rex = re.compile('_F[0-9]+')
 
 for row in ws.iter_rows(min_row=3, max_row=maxRow):
     state = replacenone(row[1].value)
@@ -381,7 +381,7 @@ driver.get(f'''
     per_page=10&selectedProviderOptimusId=&selectedBrandOptimusId=&selectedCrawlingTarget=&productName=&
     productId=&isTodayDelivery=&isHold=&coupon_optimus_id=&refererDomain=
 ''')
-time.sleep(120)
+time.sleep(10)
 driver.quit()
 bflowOriExcel = config.ST_LOGIN['excelPath'] + "orders_" + endNow + "_" + totalNow + ".xlsx"
 bflowResultExcel = config.ST_LOGIN['excelPath'] + '11st_Cancel_order' + now + '.xlsx'
@@ -587,7 +587,7 @@ sql = '''
     '''
 cursor.execute(sql)
 optionRows = cursor.fetchall()
-rex = re.compile('_F[0-9]+_')
+rex = re.compile('_F[0-9]+')
 for optionRow in optionRows:
     idNo = optionRow[0]
     fcodeText = optionRow[1]

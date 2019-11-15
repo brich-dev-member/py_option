@@ -23,8 +23,12 @@ def checkSchedule():
     if makeWeek != '5' or makeWeek != '6':
         if makeTime == '11:05' or makeTime == '14:00' or makeTime == '17:00':
             runFile('11stCancel.py')
+            runFile('returnCheck.py')
+            runFile('wmpReturn.py')
+            runFile('mergeReturn.py')
             runFile('send11st.py')
             runFile('esmFees.py')
+
         else:
             print(makeTime)
     else:

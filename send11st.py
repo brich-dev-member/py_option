@@ -22,6 +22,7 @@ print(sorted(fileResults, reverse=True))
 cancelResultLists = []
 stOrderResultLists = []
 eabyOrderResultLists = []
+stReturnResultLists = []
 
 
 def findFile(filename, listName):
@@ -39,50 +40,73 @@ for fileResult in fileResults:
     findFile('CancelResult', cancelResultLists)
     findFile('11stOrderResult', stOrderResultLists)
     findFile('ebayOrderResult', eabyOrderResultLists)
-
-
-print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
-maxCancel = max(cancelResultLists)
-maxStOrder = max(stOrderResultLists)
-maxEbayOrder = max(eabyOrderResultLists)
-print(maxCancel, maxStOrder, maxEbayOrder)
-wb = load_workbook(maxCancel)
-ws = wb.active
-cancelRow = str(ws.max_row - 1)
-wb = load_workbook(maxStOrder)
-ws = wb.active
-stOrderRow = str(ws.max_row - 1)
-wb = load_workbook(maxEbayOrder)
-ws = wb.active
-ebayOrderRow = str(ws.max_row - 1)
-cancelSendResult = open(maxCancel, 'rb')
-stOrderSendResult = open(maxStOrder, 'rb')
-ebayOrderSendResult = open(maxEbayOrder, 'rb')
-cancelTitle = 'CancelResult_' + now + '총' + cancelRow + '건'
-stOrderTitle = '11stChannelOrderResult_' + now + '총' + stOrderRow + '건'
-ebayOrderTitle = 'ebayChannelOrderResult_' + now + '총' + ebayOrderRow + '건'
-print(cancelSendResult)
-print(stOrderSendResult)
-print(ebayOrderSendResult)
+    findFile('channelReturnResult', stReturnResultLists)
 
 slack = Slacker(config.SLACK_API['token'])
-slack.files.upload(
-    file_=cancelSendResult,
-    channels=config.SLACK_API['channels'],
-    title=cancelTitle,
-)
-time.sleep(1)
-slack.files.upload(
-    file_=stOrderSendResult,
-    channels=config.SLACK_API['channels'],
-    title=stOrderTitle
-)
-time.sleep(1)
-slack.files.upload(
-    file_=ebayOrderSendResult,
-    channels=config.SLACK_API['channels'],
-    title=ebayOrderTitle
-)
+
+
+def checkFileToSend(resultList, sendName):
+    maxRow = max(resultList)
+    wb = load_workbook(maxRow)
+    ws = wb.active
+    resultRow = str(ws.max_row - 1)
+    sendResult = open(maxRow, 'rb')
+    sendTitle = sendName + now + '총' + resultRow + '건'
+    print(sendResult, sendTitle)
+    slack.files.upload(
+        file_=sendResult,
+        channels=config.SLACK_API['channels'],
+        title=sendTitle,
+    )
+
+
+checkFileToSend(cancelResultLists, 'CancelResult_')
+checkFileToSend(stOrderResultLists, '11stChannelOrderResult_')
+checkFileToSend(eabyOrderResultLists, 'ebayChannelOrderResult_')
+checkFileToSend(stReturnResultLists, 'channelReturnResult_')
+
+# print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
+# maxCancel = max(cancelResultLists)
+# maxStOrder = max(stOrderResultLists)
+# maxEbayOrder = max(eabyOrderResultLists)
+# print(maxCancel, maxStOrder, maxEbayOrder)
+# wb = load_workbook(maxCancel)
+# ws = wb.active
+# cancelRow = str(ws.max_row - 1)
+# wb = load_workbook(maxStOrder)
+# ws = wb.active
+# stOrderRow = str(ws.max_row - 1)
+# wb = load_workbook(maxEbayOrder)
+# ws = wb.active
+# ebayOrderRow = str(ws.max_row - 1)
+# cancelSendResult = open(maxCancel, 'rb')
+# stOrderSendResult = open(maxStOrder, 'rb')
+# ebayOrderSendResult = open(maxEbayOrder, 'rb')
+# cancelTitle = 'CancelResult_' + now + '총' + cancelRow + '건'
+# stOrderTitle = '11stChannelOrderResult_' + now + '총' + stOrderRow + '건'
+# ebayOrderTitle = 'ebayChannelOrderResult_' + now + '총' + ebayOrderRow + '건'
+# print(cancelSendResult)
+# print(stOrderSendResult)
+# print(ebayOrderSendResult)
+#
+#
+# slack.files.upload(
+#     file_=cancelSendResult,
+#     channels=config.SLACK_API['channels'],
+#     title=cancelTitle,
+# )
+# time.sleep(1)
+# slack.files.upload(
+#     file_=stOrderSendResult,
+#     channels=config.SLACK_API['channels'],
+#     title=stOrderTitle
+# )
+# time.sleep(1)
+# slack.files.upload(
+#     file_=ebayOrderSendResult,
+#     channels=config.SLACK_API['channels'],
+#     title=ebayOrderTitle
+# )
 # server = smtplib.SMTP('smtp.gmail.com', 587)
 # server.starttls()
 # server.login(config.MAIL_LOGIN['account2'], config.MAIL_LOGIN['password2'])

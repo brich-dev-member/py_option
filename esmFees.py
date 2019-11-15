@@ -98,7 +98,7 @@ for idx, findProduct in enumerate(findProducts):
         if driver.find_element_by_xpath('//*[@id="contents"]/div[1]').get_attribute('class') == 'l-layer-wrap':
             driver.find_element_by_xpath('//*[@id="contents"]/div[1]/div/div/button').click()
         else:
-            continue
+            print('팝업없음')
         time.sleep(1)
         shop = driver.find_element_by_xpath('//*[@id="contents"]/div[1]/p/img').get_attribute('alt')
         print('채널 : ' + shop)
@@ -128,6 +128,7 @@ for idx, findProduct in enumerate(findProducts):
             time.sleep(3)
             continue
         else:
+            print('이슈건 발')
             slack.chat.post_message(
                 channel='개발이슈없어요',
                 text=

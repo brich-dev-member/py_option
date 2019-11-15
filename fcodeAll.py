@@ -35,7 +35,7 @@ sql = '''
     '''
 cursor.execute(sql)
 optionRows = cursor.fetchall()
-rex = re.compile('_F[0-9]+_')
+rex = re.compile('_F[0-9]+')
 for optionRow in optionRows:
     if optionRow[1] is None:
         idNo = optionRow[0]
@@ -56,4 +56,4 @@ for optionRow in optionRows:
         idNo
     )
     cursor.execute(updateSql, updateValue)
-    print(updateSql,updateValue)
+    print(updateSql, updateValue)
