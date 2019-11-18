@@ -25,6 +25,7 @@ def checkSchedule():
             runFile('11stCancel.py')
             runFile('returnCheck.py')
             runFile('wmpReturn.py')
+            runFile('wmpReturnUpdate.py')
             runFile('mergeReturn.py')
             runFile('send11st.py')
             runFile('esmFees.py')

@@ -81,7 +81,7 @@ endNow = makeLastMonth.strftime("%Y-%m-%d")
 
 # 셀레니움 셋
 options = Options()
-options.add_argument('--headless')
+# options.add_argument('--headless')
 options.add_argument("disable-gpu")
 prefs = {
     "download.default_directory": config.ST_LOGIN['excelPath'],
@@ -282,89 +282,5 @@ for row in ws.iter_rows(min_row=3):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
-wmpSql = '''
-        select order_number, order_number_line, return_number, fcode
-        from `excel`.`channel_returns`
-        where channel = 'wemakeprice'
-        '''
-
-cursor.execute(wmpSql)
-print(wmpSql)
-wmpReturnLists = cursor.fetchall()
-
-for idx, wmpList in enumerate(wmpReturnLists):
-    print(idx, len(wmpReturnLists))
-    orderNumber = wmpList[0]
-    order_number_line = wmpList[1]
-    claimCode = wmpList[2]
-    fcode = wmpList[3]
-    driver.get('http://biz.wemakeprice.com/dealer/claim_return/details/' + claimCode)
-    countSleep(1, 3)
-    try:
-        returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_return_cost"]').text
-        returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
-        returnDeliveryArriveAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
-        returnDeliveryCompleteAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[2]/tr/td[2]').text
-    except Exception as ex:
-        print(ex)
-
-    try:
-        deliveryCompany = driver.find_element_by_xpath('//*[@id="pickup_corp"]').text
-        deliveryCode = driver.find_element_by_xpath('//*[@id="input_pickup_invoice"]').get_attribute('value')
-    except Exception as ex:
-        deliveryCompany = None
-        deliveryCode = None
-        print(ex)
-
-    if returnDeliveryFees == '무료':
-        returnDeliveryFees = 0
-        paymentCase = None
-    elif len(returnDeliveryFees) > 4:
-        text = returnDeliveryFees.split("|")
-        print(text)
-        returnDeliveryFees = int(text[0].replace(",", "").replace("원", ""))
-        paymentCase = text[1]
-
-    if returnRequestAt == "-":
-        returnRequestAt = None
-    if returnDeliveryArriveAt == "-":
-        returnDeliveryArriveAt = None
-    if returnDeliveryCompleteAt == "-":
-        returnDeliveryCompleteAt =None
-
-    wmpUpdate = f'''
-                update `channel_returns` 
-                set
-                return_delivery_fees = %s,
-                payment_case = %s,
-                delivery_company = %s,
-                delivery_code = %s,
-                return_request_at = %s,
-                return_delivery_arrive_at = %s,
-                return_delivery_complete_at = %s
-                where order_number = %s 
-                and order_number_line = %s 
-                and return_number = %s 
-                and fcode = %s
-                '''
-    values = (
-        returnDeliveryFees,
-        paymentCase,
-        deliveryCompany,
-        deliveryCode,
-        returnRequestAt,
-        returnDeliveryArriveAt,
-        returnDeliveryCompleteAt,
-        orderNumber,
-        order_number_line,
-        claimCode,
-        fcode,
-    )
-    print(values)
-    try:
-        cursor.execute(wmpUpdate, values)
-    except Exception as ex:
-        print(ex)
 
 driver.close()
