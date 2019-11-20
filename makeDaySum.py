@@ -47,7 +47,7 @@ def noneCheck(a, b):
         return None
 
 
-startMonth = 9
+startMonth = 10
 endMonth = 11 + 1
 
 for i in range(startMonth, endMonth):

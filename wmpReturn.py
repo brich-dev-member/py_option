@@ -1,25 +1,18 @@
+import os
+import re
+import time
+from datetime import datetime
 from glob import glob
+
+import dateutil.relativedelta
+import pymysql
+from openpyxl import load_workbook
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
-import config
-import time
-import os
-from os import path, remove
-from datetime import date
-from datetime import datetime
-import pyexcel as p
-import pymysql
-from openpyxl import load_workbook
-from tqdm import tqdm
-import dateutil.relativedelta
-import re
-from openpyxl import Workbook
 from slacker import Slacker
-import requests
-import json
-import urllib3
-from pyvirtualdisplay import Display
+
+import config
 
 
 def replacedate(text):
@@ -149,8 +142,6 @@ os.rename(wmpOriExcel, wmpResultExcel)
 wb = load_workbook(wmpResultExcel)
 ws = wb.active
 
-claimCodeList = []
-
 channelSql = '''
     INSERT INTO `excel`.`channel_returns` (
         order_number,
@@ -172,6 +163,7 @@ channelSql = '''
         product_name,
         product_option,
         fcode,
+        claim_state,
         delivery_company,
         delivery_code,
         return_delivery_arrive_at,
@@ -182,7 +174,7 @@ channelSql = '''
         %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s,
-        %s, %s, %s, %s
+        %s, %s, %s, %s, %s
        )
         ON DUPLICATE KEY UPDATE 
         security_refund = %s,
@@ -202,7 +194,8 @@ channelSql = '''
         return_delivery_arrive_at = %s,
         return_hold_at = %s,
         return_delivery_complete_at = %s,
-        fcode = %s
+        fcode = %s,
+        claim_state = %s
     '''
 
 for row in ws.iter_rows(min_row=3):
@@ -235,6 +228,7 @@ for row in ws.iter_rows(min_row=3):
     return_delivery_arrive_at = None
     return_hold_at = None
     return_delivery_complete_at = None
+    claim_state = '반품'
 
     values = (
         order_number,
@@ -256,6 +250,7 @@ for row in ws.iter_rows(min_row=3):
         product_name,
         product_option,
         fcode,
+        claim_state,
         delivery_company,
         delivery_code,
         return_delivery_arrive_at,
@@ -278,7 +273,113 @@ for row in ws.iter_rows(min_row=3):
         return_delivery_arrive_at,
         return_hold_at,
         return_delivery_complete_at,
-        fcode
+        fcode,
+        claim_state
+    )
+    print(channelSql, values)
+    cursor.execute(channelSql, values)
+
+driver.get('http://biz.wemakeprice.com/dealer/claim_exchange/find')
+countSleep(1, 3)
+
+findSelect('//*[@id="input-perpage"]', '500')
+driver.find_element_by_xpath(
+    '/html/body/div[11]/div[2]/div[2]/div[1]/form/fieldset/div[1]/dl[1]/dd/div/div[2]/label[3]').click()
+driver.find_element_by_xpath('//*[@id="btn-find"]').click()
+countSleep(1, 3)
+driver.find_element_by_xpath('//*[@id="btn-excel"]').click()
+
+resultCount = driver.find_element_by_xpath('//*[@id="place-result-count"]/span[1]').text
+countSleep(1, 3)
+
+findWmpXlsx = glob(config.ST_LOGIN['excelPath'] + "wmp_exchange_list_*.xlsx")
+print(findWmpXlsx)
+wmpOriExcel = findWmpXlsx[0]
+wmpExchangeResultExcel = config.ST_LOGIN['excelPath'] + 'wmp_exchange_' + now + '.xlsx'
+print(wmpOriExcel)
+os.rename(wmpOriExcel, wmpExchangeResultExcel)
+
+wb = load_workbook(wmpExchangeResultExcel)
+ws = wb.active
+
+
+for row in ws.iter_rows(min_row=3):
+    order_number = replacenone(row[3].value)
+    order_number_line = replacenone(row[6].value)
+    return_number = replacenone(row[1].value)
+    channel = 'wemakeprice'
+    security_refund = None
+    security_refund_at = None
+    return_request_at = row[4].value
+    return_complete_at = row[5].value
+    return_delivery_case = None
+    return_delivery_fees = None
+    return_request_case = replacenone(row[11].value)
+    channel_delivery_fees = None
+    return_respons = replacenone(row[13].value)
+    payment_case = None
+    return_qty = replaceint(row[9].value)
+    refund_state = replacenone(row[2].value)
+    product_name = replacenone(row[7].value)
+    product_option = replacenone(row[8].value)
+    if product_option is not None:
+        makeCode = rex.search(product_option)
+        if makeCode is None:
+            fcode = None
+        else:
+            fcode = makeCode.group()
+    delivery_company = None
+    delivery_code = None
+    return_delivery_arrive_at = None
+    return_hold_at = None
+    return_delivery_complete_at = None
+    claim_state = '교환'
+
+    values = (
+        order_number,
+        order_number_line,
+        return_number,
+        channel,
+        security_refund,
+        security_refund_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        channel_delivery_fees,
+        return_respons,
+        payment_case,
+        return_qty,
+        refund_state,
+        product_name,
+        product_option,
+        fcode,
+        claim_state,
+        delivery_company,
+        delivery_code,
+        return_delivery_arrive_at,
+        return_hold_at,
+        return_delivery_complete_at,
+        security_refund,
+        security_refund_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        channel_delivery_fees,
+        return_respons,
+        payment_case,
+        return_qty,
+        refund_state,
+        delivery_company,
+        delivery_code,
+        return_delivery_arrive_at,
+        return_hold_at,
+        return_delivery_complete_at,
+        fcode,
+        claim_state
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)

@@ -108,13 +108,13 @@ driver.get(f'''
 ''')
 print('Download End!')
 
-countSleep(1, 10)
+countSleep(1, 5)
 
 bflowOriExcel = config.ST_LOGIN['excelPath'] + "returns_" + endNow + "_" + totalNow + ".xlsx"
 bflowResultExcel = config.ST_LOGIN['excelPath'] + 'bflow_returns_' + now + '.xlsx'
 
 os.rename(bflowOriExcel, bflowResultExcel)
-
+print(bflowResultExcel)
 print('change File!')
 
 # sql
@@ -227,6 +227,94 @@ for row in ws.iter_rows(min_row=2, max_row=maxRow):
     cursor.execute(sql, values)
     print(sql, values)
 
+driver.get(f'''
+    https://partner.brich.co.kr/api/returns-excel-download?type=exchange&start={endNow}&end={totalNow}&
+    condition=code&content=&period=order_return_items.created_at&orderby=order_return_items.created_at&per_page=10&
+    selectedProviderOptimusId=&selectedBrandOptimusId=&productName=&productId=&isFastRefund=&isAutoCreating=
+''')
+
+print('Download End!')
+
+countSleep(1, 5)
+
+bflowOriExcel = config.ST_LOGIN['excelPath'] + "exchanges_" + endNow + "_" + totalNow + ".xlsx"
+bflowExchangeResultExcel = config.ST_LOGIN['excelPath'] + 'bflow_exchanges_' + now + '.xlsx'
+
+os.rename(bflowOriExcel,bflowExchangeResultExcel)
+print(bflowExchangeResultExcel)
+print('change File!')
+
+path = bflowExchangeResultExcel
+
+wb = load_workbook(path)
+
+ws = wb.active
+
+maxRow = ws.max_row
+
+for row in ws.iter_rows(min_row=2, max_row=maxRow):
+    product_order_number = replacenone(row[0].value)
+    order_number = replacenone(row[1].value)
+    return_number = replacenone(row[2].value)
+    channel = replacenone(row[3].value)
+    make = replacenone(row[4].value)
+    payment_at = row[5].value
+    return_request_at = row[6].value
+    return_complete_at = None
+    return_delivery_case = replacenone(row[8].value)
+    return_delivery_fees = replaceint(row[9].value)
+    return_request_case = replacenone(row[7].value)
+    return_qty = replaceint(row[11].value)
+    refund_state = replacenone(row[12].value)
+    claim_state = replacenone(row[14].value)
+    fast_refund = None
+    provider_name = replacenone(row[15].value)
+    product_name = replacenone(row[16].value)
+    product_option = replacenone(row[17].value)
+    if product_option is not None:
+        makeCode = rex.search(product_option)
+        if makeCode is None:
+            fcode = None
+        else:
+            fcode = makeCode.group()
+
+    values = (
+        product_order_number,
+        order_number,
+        return_number,
+        channel,
+        make,
+        payment_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        return_qty,
+        refund_state,
+        claim_state,
+        fast_refund,
+        provider_name,
+        product_name,
+        product_option,
+        fcode,
+        payment_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        return_qty,
+        refund_state,
+        claim_state,
+        fast_refund,
+        fcode,
+    )
+
+    cursor.execute(sql, values)
+    print(sql, values)
+
+
 countSleep(1, 5)
 driver.get('https://login.11st.co.kr/auth/front/selleroffice/login.tmall')
 
@@ -271,7 +359,6 @@ time.sleep(2)
 driver.find_element_by_xpath('//*[@id="ext-gen7"]/div[2]/div[1]/div[6]/div/a').click()
 countSleep(1, 10)
 
-driver.close()
 returnCompleteFile = changeFileToXlsx('claimGoodsList.xls', '11st_return_Complete_')
 print(returnCompleteFile)
 
@@ -297,6 +384,7 @@ channelSql = '''
         product_name,
         product_option,
         fcode,
+        claim_state,
         delivery_company,
         delivery_code,
         return_delivery_arrive_at,
@@ -307,7 +395,7 @@ channelSql = '''
         %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s,
-        %s, %s, %s, %s
+        %s, %s, %s, %s, %s
        )
         ON DUPLICATE KEY UPDATE 
         security_refund = %s,
@@ -327,7 +415,8 @@ channelSql = '''
         return_delivery_arrive_at = %s,
         return_hold_at = %s,
         return_delivery_complete_at = %s,
-        fcode = %s
+        fcode = %s,
+        claim_state = %s
     '''
 
 path = returnFile
@@ -369,6 +458,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     return_delivery_arrive_at = row[39].value
     return_hold_at = row[40].value
     return_delivery_complete_at = row[41].value
+    claim_state = '반품'
 
     values = (
         order_number,
@@ -390,6 +480,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         product_name,
         product_option,
         fcode,
+        claim_state,
         delivery_company,
         delivery_code,
         return_delivery_arrive_at,
@@ -412,7 +503,8 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         return_delivery_arrive_at,
         return_hold_at,
         return_delivery_complete_at,
-        fcode
+        fcode,
+        claim_state
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
@@ -456,6 +548,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     return_delivery_arrive_at = row[39].value
     return_hold_at = row[40].value
     return_delivery_complete_at = row[41].value
+    claim_state = '반품'
 
     values = (
         order_number,
@@ -477,6 +570,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         product_name,
         product_option,
         fcode,
+        claim_state,
         delivery_company,
         delivery_code,
         return_delivery_arrive_at,
@@ -499,9 +593,116 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         return_delivery_arrive_at,
         return_hold_at,
         return_delivery_complete_at,
-        fcode
+        fcode,
+        claim_state
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
+
+# 11번가 교환 데이터 수집
+
+driver.get('https://soffice.11st.co.kr/escrow/AuthSellerClaimManager.tmall?method=getClaimList&clm=02&searchVer=02')
+
+driver.find_element_by_xpath('//*[@id="totalClmCountA"]').click()
+driver.find_element_by_xpath('//*[@id="sch_box_wrap"]/div[2]/div[2]/div/button[1]').click()
+countSleep(1, 3)
+driver.find_element_by_xpath('//*[@id="ext-gen6"]/form[1]/div/div[1]/div[6]/div/a').click()
+countSleep(1, 3)
+returnRequestFile = changeFileToXlsx('claimGoodsList.xls', '11st_return_Request_')
+
+print(returnRequestFile)
+
+path = returnRequestFile
+
+wb = load_workbook(path)
+
+ws = wb.active
+
+maxRow = ws.max_row - 2
+
+for row in ws.iter_rows(min_row=7, max_row=maxRow):
+    order_number = replacenone(row[2].value)
+    order_number_line = replacenone(row[3].value)
+    return_number = None
+    channel = '11st'
+    security_refund = None
+    security_refund_at = None
+    return_request_at = row[4].value
+    return_complete_at = row[5].value
+    return_delivery_case = replacenone(row[23].value)
+    return_delivery_fees = replaceint(row[20].value)
+    return_request_case = replacenone(row[16].value)
+    channel_delivery_fees = replaceint(row[21].value)
+    return_respons = replacenone(row[23].value)
+    payment_case = replacenone(row[24].value)
+    return_qty = replaceint(row[10].value)
+    refund_state = replacenone(row[1].value)
+    product_name = replacenone(row[6].value)
+    product_option = replacenone(row[7].value)
+    if product_option is not None:
+        makeCode = rex.search(product_option)
+        if makeCode is None:
+            fcode = None
+        else:
+            fcode = makeCode.group()
+
+    delivery_company = replacenone(row[28].value)
+    delivery_code = replacenone(row[29].value)
+    return_delivery_arrive_at = row[30].value
+    return_hold_at = None
+    return_delivery_complete_at = None
+    claim_state = '교환'
+
+    values = (
+        order_number,
+        order_number_line,
+        return_number,
+        channel,
+        security_refund,
+        security_refund_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        channel_delivery_fees,
+        return_respons,
+        payment_case,
+        return_qty,
+        refund_state,
+        product_name,
+        product_option,
+        fcode,
+        claim_state,
+        delivery_company,
+        delivery_code,
+        return_delivery_arrive_at,
+        return_hold_at,
+        return_delivery_complete_at,
+        security_refund,
+        security_refund_at,
+        return_request_at,
+        return_complete_at,
+        return_delivery_case,
+        return_delivery_fees,
+        return_request_case,
+        channel_delivery_fees,
+        return_respons,
+        payment_case,
+        return_qty,
+        refund_state,
+        delivery_company,
+        delivery_code,
+        return_delivery_arrive_at,
+        return_hold_at,
+        return_delivery_complete_at,
+        fcode,
+        claim_state
+    )
+    print(channelSql, values)
+    cursor.execute(channelSql, values)
+
+driver.quit()
+
 
 

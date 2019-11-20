@@ -1,25 +1,20 @@
-from glob import glob
+from selenium import webdriver
+import re
+import time
+from datetime import datetime
+
+import dateutil.relativedelta
+import pymysql
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import Select
-import config
-import time
-import os
-from os import path, remove
-from datetime import date
-from datetime import datetime
-import pyexcel as p
-import pymysql
-from openpyxl import load_workbook
-from tqdm import tqdm
-import dateutil.relativedelta
-import re
-from openpyxl import Workbook
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from slacker import Slacker
-import requests
-import json
-import urllib3
-from pyvirtualdisplay import Display
+
+import config
+
 
 def replacedate(text):
     if text is None:
@@ -120,7 +115,7 @@ countSleep(1, 3)
 
 
 wmpSql = '''
-        select order_number, order_number_line, return_number, fcode
+        select order_number, order_number_line, return_number, fcode, claim_state
         from `excel`.`channel_returns`
         where channel = 'wemakeprice'
         '''
@@ -135,72 +130,163 @@ for idx, wmpList in enumerate(wmpReturnLists):
     order_number_line = wmpList[1]
     claimCode = wmpList[2]
     fcode = wmpList[3]
-    driver.get('http://biz.wemakeprice.com/dealer/claim_return/details/' + claimCode)
-    countSleep(1, 3)
-    try:
-        returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_return_cost"]').text
-        returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
-        returnDeliveryArriveAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
-        returnDeliveryCompleteAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[2]/tr/td[2]').text
-    except Exception as ex:
-        print(ex)
+    claimState = wmpList[4]
 
-    try:
-        deliveryCompany = driver.find_element_by_xpath('//*[@id="pickup_corp"]').text
-        deliveryCode = driver.find_element_by_xpath('//*[@id="input_pickup_invoice"]').get_attribute('value')
-    except Exception as ex:
-        deliveryCompany = None
-        deliveryCode = None
-        print(ex)
+    if claimState == '반품':
+        driver.get('http://biz.wemakeprice.com/dealer/claim_return/details/' + claimCode)
+        try:
+            WebDriverWait(driver, 3).until(EC.alert_is_present())
+            alert = driver.switch_to.alert
+            alert.accept()
+            print("alert accepted")
+        except TimeoutException:
+            print('no Alert')
+        try:
+            returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_return_cost"]').text
+            returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
+            returnDeliveryArriveAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
+            returnDeliveryCompleteAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[2]/tr/td[2]').text
+        except Exception as ex:
+            print(ex)
 
-    if returnDeliveryFees == '무료':
-        returnDeliveryFees = 0
-        paymentCase = None
-    elif len(returnDeliveryFees) > 4:
-        text = returnDeliveryFees.split("|")
-        print(text)
-        returnDeliveryFees = int(text[0].replace(",", "").replace("원", ""))
-        paymentCase = text[1]
+        try:
+            deliveryCompany = driver.find_element_by_xpath('//*[@id="pickup_corp"]').text
+            deliveryCode = driver.find_element_by_xpath('//*[@id="input_pickup_invoice"]').get_attribute('value')
+        except Exception as ex:
+            deliveryCompany = None
+            deliveryCode = None
+            print(ex)
 
-    if returnRequestAt == "-":
-        returnRequestAt = None
-    if returnDeliveryArriveAt == "-":
-        returnDeliveryArriveAt = None
-    if returnDeliveryCompleteAt == "-":
-        returnDeliveryCompleteAt =None
+        if returnDeliveryFees == '무료':
+            returnDeliveryFees = 0
+            paymentCase = None
+        elif len(returnDeliveryFees) > 4:
+            text = returnDeliveryFees.split("|")
+            print(text)
+            returnDeliveryFees = int(text[0].replace(",", "").replace("원", ""))
+            paymentCase = text[1]
 
-    wmpUpdate = f'''
-                update `channel_returns` 
-                set
-                return_delivery_fees = %s,
-                payment_case = %s,
-                delivery_company = %s,
-                delivery_code = %s,
-                return_request_at = %s,
-                return_delivery_arrive_at = %s,
-                return_delivery_complete_at = %s
-                where order_number = %s 
-                and order_number_line = %s 
-                and return_number = %s 
-                and fcode = %s
-                '''
-    values = (
-        returnDeliveryFees,
-        paymentCase,
-        deliveryCompany,
-        deliveryCode,
-        returnRequestAt,
-        returnDeliveryArriveAt,
-        returnDeliveryCompleteAt,
-        orderNumber,
-        order_number_line,
-        claimCode,
-        fcode,
-    )
-    print(values)
-    try:
-        cursor.execute(wmpUpdate, values)
-    except Exception as ex:
-        print(ex)
+        if returnRequestAt == "-":
+            returnRequestAt = None
+        if returnDeliveryArriveAt == "-":
+            returnDeliveryArriveAt = None
+        if returnDeliveryCompleteAt == "-":
+            returnDeliveryCompleteAt =None
+
+        wmpUpdate = f'''
+                    update `channel_returns` 
+                    set
+                    return_delivery_fees = %s,
+                    payment_case = %s,
+                    delivery_company = %s,
+                    delivery_code = %s,
+                    return_request_at = %s,
+                    return_delivery_arrive_at = %s,
+                    return_delivery_complete_at = %s
+                    where order_number = %s 
+                    and order_number_line = %s 
+                    and return_number = %s 
+                    and fcode = %s
+                    '''
+        values = (
+            returnDeliveryFees,
+            paymentCase,
+            deliveryCompany,
+            deliveryCode,
+            returnRequestAt,
+            returnDeliveryArriveAt,
+            returnDeliveryCompleteAt,
+            orderNumber,
+            order_number_line,
+            claimCode,
+            fcode,
+        )
+        print(values)
+        try:
+            cursor.execute(wmpUpdate, values)
+        except Exception as ex:
+            print(ex)
+
+    elif claimState == '교환':
+        driver.get('http://biz.wemakeprice.com/dealer/claim_exchange/details/' + claimCode)
+        try:
+            WebDriverWait(driver, 3).until(EC.alert_is_present())
+            alert = driver.switch_to.alert
+            alert.accept()
+            print("alert accepted")
+            continue
+        except TimeoutException:
+            print('no Alert')
+        try:
+            alert = driver.switch_to.alert
+            alert.accept()
+            print("alert accepted")
+            returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_exchange_cost"]').text
+            returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
+            returnDeliveryArriveAt = driver.find_element_by_xpath(
+                '//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
+            returnDeliveryCompleteAt = driver.find_element_by_xpath(
+                '//*[@id="tpl_history"]/table/tbody[2]/tr/td[2]').text
+        except Exception as ex:
+            print(ex)
+
+        try:
+            deliveryCompany = driver.find_element_by_xpath('//*[@id="pickup_corp"]').text
+            deliveryCode = driver.find_element_by_xpath('//*[@id="input_pickup_invoice"]').get_attribute('value')
+        except Exception as ex:
+            deliveryCompany = None
+            deliveryCode = None
+            print(ex)
+
+        if returnDeliveryFees == '무료':
+            returnDeliveryFees = 0
+            paymentCase = None
+        elif len(returnDeliveryFees) > 4:
+            text = returnDeliveryFees.split("|")
+            print(text)
+            returnDeliveryFees = int(text[0].replace(",", "").replace("원", ""))
+            paymentCase = text[1]
+
+        if returnRequestAt == "-":
+            returnRequestAt = None
+        if returnDeliveryArriveAt == "-":
+            returnDeliveryArriveAt = None
+        if returnDeliveryCompleteAt == "-":
+            returnDeliveryCompleteAt = None
+
+        wmpUpdate = f'''
+                    update `channel_returns` 
+                    set
+                    return_delivery_fees = %s,
+                    payment_case = %s,
+                    delivery_company = %s,
+                    delivery_code = %s,
+                    return_request_at = %s,
+                    return_delivery_arrive_at = %s,
+                    return_delivery_complete_at = %s
+                    where order_number = %s 
+                    and order_number_line = %s 
+                    and return_number = %s 
+                    and fcode = %s
+                    '''
+        values = (
+            returnDeliveryFees,
+            paymentCase,
+            deliveryCompany,
+            deliveryCode,
+            returnRequestAt,
+            returnDeliveryArriveAt,
+            returnDeliveryCompleteAt,
+            orderNumber,
+            order_number_line,
+            claimCode,
+            fcode,
+        )
+        print(values)
+        try:
+            cursor.execute(wmpUpdate, values)
+            print("update!")
+        except Exception as ex:
+            print(ex)
 
 driver.close()
