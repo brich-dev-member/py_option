@@ -48,7 +48,7 @@ prefs = {
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 # driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
 # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
@@ -144,7 +144,7 @@ for idx, findProduct in enumerate(findProducts):
             )
             time.sleep(3)
 
-driver.close()
+driver.quit()
 
 
 

@@ -13,6 +13,10 @@ from selenium.webdriver.support.ui import Select
 from slacker import Slacker
 
 import config
+from pyvirtualdisplay import Display
+
+display = Display(visible=0, size=(1200, 900))
+display.start()
 
 
 def replacedate(text):
@@ -81,7 +85,7 @@ prefs = {
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 
 driver.get('https://biz.wemakeprice.com/partner/login')
@@ -143,7 +147,7 @@ wb = load_workbook(wmpResultExcel)
 ws = wb.active
 
 channelSql = '''
-    INSERT INTO `excel`.`channel_returns` (
+    INSERT INTO `bflow`.`channel_returns` (
         order_number,
         order_number_line,
         return_number,
@@ -384,4 +388,5 @@ for row in ws.iter_rows(min_row=3):
     print(channelSql, values)
     cursor.execute(channelSql, values)
 
-driver.close()
+driver.quit()
+display.stop()

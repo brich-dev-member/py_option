@@ -14,6 +14,10 @@ import dateutil.relativedelta
 import re
 from openpyxl import Workbook
 from slacker import Slacker
+from pyvirtualdisplay import Display
+
+display = Display(visible=0, size=(1200, 900))
+display.start()
 
 
 def replacedate(text):
@@ -75,13 +79,13 @@ endNow = makeLastMonth.strftime("%Y-%m-%d")
 # 셀레니움 셋
 options = Options()
 # options.add_argument('--headless')
-# options.add_argument("disable-gpu")
+options.add_argument("disable-gpu")
 prefs = {
     "download.default_directory": config.ST_LOGIN['excelPath'],
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 # driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
 # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
@@ -119,7 +123,7 @@ print('change File!')
 
 # sql
 sql = '''
-    INSERT INTO `excel`.`Bflow_returns` (
+    INSERT INTO `bflow`.`Bflow_returns` (
         product_order_number,
         order_number,
         return_number,
@@ -364,7 +368,7 @@ print(returnCompleteFile)
 
 
 channelSql = '''
-    INSERT INTO `excel`.`channel_returns` (
+    INSERT INTO `bflow`.`channel_returns` (
         order_number,
         order_number_line,
         return_number,
@@ -704,5 +708,5 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
 
 driver.quit()
 
-
+display.stop()
 

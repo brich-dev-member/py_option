@@ -1,0 +1,133 @@
+*** Starting uWSGI 2.0.15-debian (64bit) on [Wed Nov 20 19:38:50 2019] ***
+compiled with version: 7.3.0 on 28 September 2018 15:41:15
+os: Linux-4.15.0-1054-aws #56-Ubuntu SMP Thu Nov 7 16:15:59 UTC 2019
+nodename: ip-172-31-18-43
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 2
+current working directory: /var/www/works/py_option
+detected binary path: /usr/bin/uwsgi-core
+dropping root privileges as early as possible
+your processes number limit is 15679
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to UNIX address mdb.sock fd 3
+dropping root privileges after socket binding
+dropping root privileges after plugin initialization
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 421248 bytes (411 KB) for 4 cores
+*** Operational MODE: preforking+threaded ***
+*** no app loaded. going in full dynamic mode ***
+dropping root privileges after application loading
+*** uWSGI is running in multiple interpreter mode ***
+!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!
+no request plugin is loaded, you will not be able to manage requests.
+you may need to install the package for your language of choice, or simply load it with --plugin.
+!!!!!!!!!!! END OF WARNING !!!!!!!!!!
+spawned uWSGI master process (pid: 6728)
+spawned uWSGI worker 1 (pid: 6729, cores: 2)
+spawned uWSGI worker 2 (pid: 6730, cores: 2)
+*** Starting uWSGI 2.0.15-debian (64bit) on [Wed Nov 20 19:55:49 2019] ***
+compiled with version: 7.3.0 on 28 September 2018 15:41:15
+os: Linux-4.15.0-1054-aws #56-Ubuntu SMP Thu Nov 7 16:15:59 UTC 2019
+nodename: ip-172-31-18-43
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 2
+current working directory: /var/www/works/py_option
+detected binary path: /usr/bin/uwsgi-core
+dropping root privileges as early as possible
+your processes number limit is 15679
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to UNIX address mdb.sock fd 3
+dropping root privileges after socket binding
+dropping root privileges after plugin initialization
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 421248 bytes (411 KB) for 4 cores
+*** Operational MODE: preforking+threaded ***
+*** no app loaded. going in full dynamic mode ***
+dropping root privileges after application loading
+*** uWSGI is running in multiple interpreter mode ***
+!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!
+no request plugin is loaded, you will not be able to manage requests.
+you may need to install the package for your language of choice, or simply load it with --plugin.
+!!!!!!!!!!! END OF WARNING !!!!!!!!!!
+spawned uWSGI master process (pid: 8287)
+spawned uWSGI worker 1 (pid: 8288, cores: 2)
+spawned uWSGI worker 2 (pid: 8289, cores: 2)
+*** Starting uWSGI 2.0.15-debian (64bit) on [Wed Nov 20 20:22:00 2019] ***
+compiled with version: 7.3.0 on 28 September 2018 15:41:15
+os: Linux-4.15.0-1054-aws #56-Ubuntu SMP Thu Nov 7 16:15:59 UTC 2019
+nodename: ip-172-31-18-43
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 2
+current working directory: /var/www/works/py_option
+detected binary path: /usr/bin/uwsgi-core
+dropping root privileges as early as possible
+your processes number limit is 15679
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to UNIX address mdb.sock fd 3
+dropping root privileges after socket binding
+dropping root privileges after plugin initialization
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 421248 bytes (411 KB) for 4 cores
+*** Operational MODE: preforking+threaded ***
+*** no app loaded. going in full dynamic mode ***
+dropping root privileges after application loading
+*** uWSGI is running in multiple interpreter mode ***
+!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!
+no request plugin is loaded, you will not be able to manage requests.
+you may need to install the package for your language of choice, or simply load it with --plugin.
+!!!!!!!!!!! END OF WARNING !!!!!!!!!!
+spawned uWSGI master process (pid: 9002)
+spawned uWSGI worker 1 (pid: 9003, cores: 2)
+spawned uWSGI worker 2 (pid: 9004, cores: 2)
+*** Starting uWSGI 2.0.15-debian (64bit) on [Thu Nov 21 15:02:43 2019] ***
+compiled with version: 7.3.0 on 28 September 2018 15:41:15
+os: Linux-4.15.0-1054-aws #56-Ubuntu SMP Thu Nov 7 16:15:59 UTC 2019
+nodename: ip-172-31-18-43
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 2
+current working directory: /var/www/works/py_option
+detected binary path: /usr/bin/uwsgi-core
+dropping root privileges as early as possible
+chdir() to /var/www/works/py_option
+your processes number limit is 15679
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to UNIX address mdb.sock fd 3
+dropping root privileges after socket binding
+dropping root privileges after plugin initialization
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 421248 bytes (411 KB) for 4 cores
+*** Operational MODE: preforking+threaded ***
+*** no app loaded. going in full dynamic mode ***
+dropping root privileges after application loading
+*** uWSGI is running in multiple interpreter mode ***
+!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!
+no request plugin is loaded, you will not be able to manage requests.
+you may need to install the package for your language of choice, or simply load it with --plugin.
+!!!!!!!!!!! END OF WARNING !!!!!!!!!!
+spawned uWSGI master process (pid: 18936)
+spawned uWSGI worker 1 (pid: 18937, cores: 2)
+spawned uWSGI worker 2 (pid: 18938, cores: 2)

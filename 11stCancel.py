@@ -13,6 +13,11 @@ from tqdm import tqdm
 import dateutil.relativedelta
 import re
 from openpyxl import Workbook
+from pyvirtualdisplay import Display
+
+display = Display(visible=0, size=(1200, 900))
+display.start()
+
 
 
 def replacedate(text):
@@ -41,13 +46,13 @@ def replaceint(text):
 
 options = Options()
 # options.add_argument('--headless')
-# options.add_argument("disable-gpu")
+options.add_argument("disable-gpu")
 prefs = {
     "download.default_directory": config.ST_LOGIN['excelPath'],
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 # driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
 # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
@@ -131,9 +136,9 @@ db = pymysql.connect(
     charset=config.DATABASE_CONFIG['charset'],
     autocommit=True)
 cursor = db.cursor()
-delOrder = '''DELETE From  `excel`.`11st_cancel`'''
+delOrder = '''DELETE From  `bflow`.`11st_cancel`'''
 cursor.execute(delOrder)
-sql = '''INSERT INTO `excel`.`11st_cancel` (
+sql = '''INSERT INTO `bflow`.`11st_cancel` (
         state,
         channel_order_number,
         channel_order_list,
@@ -209,8 +214,8 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         cancel_complete_date,
         cancel_complete_user
     )
-    cursor.execute(sql, values)
     print(sql, values)
+    cursor.execute(sql, values)
 
 path = logiFile
 
@@ -218,10 +223,10 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-delOrder = '''DELETE From `excel`.`channel_order` where channel = "11st"'''
+delOrder = '''DELETE From `bflow`.`channel_order` where channel = "11st"'''
 cursor.execute(delOrder)
 orderSql = '''
-        INSERT INTO `excel`.`channel_order` (
+        INSERT INTO `bflow`.`channel_order` (
         state,
         channel_order_number,
         channel_order_list,
@@ -298,10 +303,10 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-delOrder = '''DELETE From `excel`.`channel_order` where channel = "gmarket" or channel = "auction"'''
+delOrder = '''DELETE From `bflow`.`channel_order` where channel = "gmarket" or channel = "auction"'''
 cursor.execute(delOrder)
 orderSql = '''
-        INSERT INTO `excel`.`channel_order` (
+        INSERT INTO `bflow`.`channel_order` (
         state,
         channel_order_number,
         channel_order_list,
@@ -403,7 +408,7 @@ db = pymysql.connect(
     autocommit=True)
 cursor = db.cursor()
 
-sql = '''INSERT INTO `excel`.`sell` (
+sql = '''INSERT INTO `bflow`.`sell` (
         product_order_number,
         order_number,
         payment_at,
@@ -775,4 +780,4 @@ wb.save(result)
 wb.close()
 print(result)
 db.close()
-
+display.stop()

@@ -22,3 +22,7 @@ option_slice.spec
 chromedriver
 
 dockerfile
+works
+py_option.conf
+uwsgi_params
+wsgi.ini

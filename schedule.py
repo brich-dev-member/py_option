@@ -31,7 +31,7 @@ def checkSchedule():
             runFile('esmFees.py')
 
         else:
-            print(makeTime)
+            print(makeWeek, "/", makeTime)
     else:
         print('today is HolyDay')
 

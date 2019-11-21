@@ -77,7 +77,7 @@ prefs = {
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 
 driver.get('https://biz.wemakeprice.com/partner/login')
@@ -116,7 +116,7 @@ countSleep(1, 3)
 
 wmpSql = '''
         select order_number, order_number_line, return_number, fcode, claim_state
-        from `excel`.`channel_returns`
+        from `bflow`.`channel_returns`
         where channel = 'wemakeprice'
         '''
 
@@ -131,7 +131,7 @@ for idx, wmpList in enumerate(wmpReturnLists):
     claimCode = wmpList[2]
     fcode = wmpList[3]
     claimState = wmpList[4]
-
+    print(claimState)
     if claimState == '반품':
         driver.get('http://biz.wemakeprice.com/dealer/claim_return/details/' + claimCode)
         try:
@@ -143,6 +143,7 @@ for idx, wmpList in enumerate(wmpReturnLists):
             print('no Alert')
         try:
             returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_return_cost"]').text
+            print(returnDeliveryFees)
             returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
             returnDeliveryArriveAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
             returnDeliveryCompleteAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[2]/tr/td[2]').text
@@ -218,10 +219,8 @@ for idx, wmpList in enumerate(wmpReturnLists):
         except TimeoutException:
             print('no Alert')
         try:
-            alert = driver.switch_to.alert
-            alert.accept()
-            print("alert accepted")
-            returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_exchange_cost"]').text
+            returnDeliveryFees = driver.find_element_by_xpath('//*[@id="tpl_exchange_cost"]/td').text
+            print(returnDeliveryFees)
             returnRequestAt = driver.find_element_by_xpath('//*[@id="tpl_history"]/table/tbody[1]/tr/td[1]').text
             returnDeliveryArriveAt = driver.find_element_by_xpath(
                 '//*[@id="tpl_history"]/table/tbody[1]/tr/td[3]').text
@@ -289,4 +288,4 @@ for idx, wmpList in enumerate(wmpReturnLists):
         except Exception as ex:
             print(ex)
 
-driver.close()
+driver.quit()

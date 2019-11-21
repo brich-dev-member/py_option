@@ -13,6 +13,11 @@ from tqdm import tqdm
 import dateutil.relativedelta
 import re
 from openpyxl import Workbook
+from pyvirtualdisplay import Display
+
+display = Display(visible=0, size=(1200, 900))
+display.start()
+
 
 def replacedate(text):
     if text is None:
@@ -54,7 +59,7 @@ prefs = {
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/Users/daegukim/py_option/chromedriver', options=options)
+driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 # driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
 # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
@@ -66,6 +71,7 @@ driver.find_element_by_id('user-id').send_keys(config.ST_LOGIN['id'])
 driver.find_element_by_id('passWord').send_keys(config.ST_LOGIN['password'])
 driver.find_element_by_xpath('/html/body/div/form[1]/fieldset/button').click()
 time.sleep(5)
+print('login')
 driver.get('https://soffice.11st.co.kr/escrow/AuthSellerClaimManager.tmall?method=getClaimList&clm=01&searchVer=02')
 time.sleep(2)
 windowLists = driver.window_handles
@@ -239,5 +245,6 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
         return_hold_at,
         return_delivery_complete_at,
     )
-    cursor.execute(sql, values)
     print(sql, values)
+    cursor.execute(sql, values)
+display.stop()
