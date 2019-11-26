@@ -508,16 +508,16 @@ for monthAmount in monthAmounts:
     monthNo += 6
 
 
-for col in ws.columns:
-    max_length = 0
-    columnIndex = col[0].column
-    column = get_column_letter(columnIndex)
-    for cell in col:
-        if max_length < len(str(cell.value)) < 30:
-            max_length = len(str(cell.value))
-        else:
-            pass
-    ws.column_dimensions[column].width = (max_length + 1) * 1.2
+# for col in ws.columns:
+#     max_length = 0
+#     columnIndex = col[0].column
+#     column = get_column_letter(columnIndex)
+#     for cell in col:
+#         if max_length < len(str(cell.value)) < 30:
+#             max_length = len(str(cell.value))
+#         else:
+#             pass
+#     ws.column_dimensions[column].width = (max_length + 1) * 1.2
 makeToday = datetime.today()
 
 now = makeToday.strftime("%m%d_%H%M")

@@ -70,6 +70,7 @@ makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
 totalNow = makeToday.strftime("%Y-%m-%d")
 halfNow = (makeToday - timedelta(weeks=2)).strftime("%Y-%m-%d")
+weekNow = (makeToday - timedelta(weeks=1)).strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
 print(halfNow)
@@ -96,7 +97,7 @@ driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/d
 countSleep(1,4)
 
 # 주문 1개월 업데이트
-
+print('Sell')
 driver.get(f'''
     https://partner.brich.co.kr/api/orders-excel-download?type=order&start={halfNow}
     &end={totalNow}&condition=code&content=&period=orders.created_at&orderby=orders.created_at
@@ -146,7 +147,7 @@ sql = '''INSERT INTO `bflow`.`sell` (
         month,
         fcode
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, $s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE payment_at = %s, order_state = %s, claim = %s, delivery_at = %s, delivery_complete = %s,
         order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, fcode = %s
          '''
@@ -184,7 +185,7 @@ for row in rows:
     provider_number = replacenone(row[46].value)
     channel_order_number = replacenone(row[3].value)
     if payment_at is not None:
-        monthStr = datetime.datetime.strptime(payment_at, '%Y-%m-%d')
+        monthStr = datetime.strptime(payment_at, '%Y-%m-%d')
         week = monthStr.isocalendar()[1]
         month = monthStr.month
     else:
@@ -209,15 +210,15 @@ for row in rows:
     )
     cursor.execute(sql, values)
     print(sql, values)
-
+print('distribution')
 driver.get(f'''
     https://partner.brich.co.kr/api/distribution-confirm-excel-download?
-    start={halfNow}&end={totalNow}&condition=linkage_mall_order_id&content=&status%5B%5D=80&
+    start={weekNow}&end={totalNow}&condition=linkage_mall_order_id&content=&status%5B%5D=80&
     period=order_item_options.confirmed_at&orderby=order_item_options.created_at&
     per_page=50&selectedProviderOptimusId=
     ''')
 countSleep(1,10)
-bflowdistributionOriExcel = config.ST_LOGIN['excelPath'] + "distribution_confirm_" + halfNow + "_" + totalNow +".xlsx"
+bflowdistributionOriExcel = config.ST_LOGIN['excelPath'] + "distribution_confirm_" + weekNow + "_" + totalNow +".xlsx"
 bflowdistributionExcel = config.ST_LOGIN['excelPath'] + 'bflow_distribution' + now + '.xlsx'
 
 os.rename(bflowdistributionOriExcel, bflowdistributionExcel)
@@ -228,7 +229,7 @@ wb = load_workbook(path)
 
 ws = wb.active
 
-distributionSql = '''INSERT INTO `excel`.`calculate` (
+distributionSql = '''INSERT INTO `bflow`.`calculate` (
         product_order_number,
         order_number,
         channel_order_number,
@@ -274,7 +275,7 @@ for row in rows:
     complete_at = replacedate(row[12].value)
     match_at = replacedate(row[13].value)
     if complete_at is not None:
-        monthStr = datetime.datetime.strptime(complete_at, '%Y-%m-%d')
+        monthStr = datetime.strptime(complete_at, '%Y-%m-%d')
         month = monthStr.month
     else:
         month = None
@@ -318,6 +319,169 @@ for row in rows:
 
     cursor.execute(distributionSql, values)
     print(distributionSql, values)
+print('product_Dump')
+
+baseUrl = 'https://partner.brich.co.kr/api/products/export-dump?params={%22start%22:%22'
+subUrl = '%22,%22end%22:%22'
+endUrl = '''%22,%22product_optimus_id%22:%22%22,%22name%22:%22%22,%22brand_name%22:%22%22,%22status%22:[],%22period%22:%22created_at%22,%22categories%22:{%22depth1%22:%22%22,%22depth2%22:%22%22,%22depth3%22:%22%22,%22depth4%22:%22%22},%22orderby%22:%22created_at%22,%22per_page%22:50,%22page%22:1,%22approve_status%22:[],%22custom_code%22:%22%22,%22provider_optimus_id%22:%22%22,%22manager_optimus_id%22:%22%22,%22distribution%22:[],%22price%22:{%22type%22:null,%22lte%22:null,%22gte%22:null},%22crawled_product%22:false,%22is_today_delivery%22:false,%22is_today_sale%22:false,%22is_celeb_group_buying%22:false,%22is_group_buying%22:false,%22official_information_status%22:%22%22,%22disApproved%22:false}'''
+totlaUrl = baseUrl + weekNow + subUrl + totalNow + endUrl
+print(totlaUrl)
+driver.get(totlaUrl)
+
+countSleep(1,10)
+bflowProductOriExcel = config.ST_LOGIN['excelPath'] + "products.xlsx"
+bflowProductExcel = config.ST_LOGIN['excelPath'] + 'bflow_Product_' + now + '.xlsx'
+
+os.rename(bflowProductOriExcel, bflowProductExcel)
+
+path = bflowProductExcel
+
+wb = load_workbook(path)
+
+ws = wb.active
+
+productSql = '''INSERT INTO `bflow`.`product` (
+        confirm,
+        state,
+        product_number,
+        provider_name,
+        provider_number,
+        product_name,
+        brand,
+        category,
+        category_number,
+        price,
+        start_date,
+        end_date,
+        create_date,
+        update_date,
+        week,
+        month,
+        is_deal,
+        ssg_fees,
+        gmarket_fees,
+        auction_fees,
+        11st_fees,
+        coupang_fees,
+        interpark_fees,
+        wemakeprice_fees,
+        tmon_fees,
+        g9_fees
+        ) VALUES (
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE confirm = %s, state = %s, product_name = %s,
+         category = %s, category_number = %s, price =%s, start_date = %s, end_date = %s,
+         create_date = %s, update_date = %s, week = %s, month = %s, is_deal = %s,
+         ssg_fees = %s, gmarket_fees = %s, auction_fees = %s, 11st_fees = %s,
+         coupang_fees = %s, interpark_fees = %s, wemakeprice_fees = %s, tmon_fees = %s, g9_fees = %s
+         '''
+
+iter_row = iter(ws.rows)
+next(iter_row)
+
+rows = tqdm(iter_row)
+
+for row in rows:
+    confirm = replacenone(row[0].value)
+    state = replacenone(row[1].value)
+    product_number = replacenone(row[2].value)
+    provider_name = replacenone(row[3].value)
+    provider_number = replacenone(row[4].value)
+    product_name = replacenone(row[5].value)
+    brand = replacenone(row[6].value)
+    category = replacenone(row[7].value)
+    category_number = replacenone(row[8].value)
+    price = replaceint(row[9].value)
+    deal = replacenone(row[10].value)
+    if deal is str('Y'):
+        is_deal = 1
+    else:
+        is_deal = 0
+    channel_fees = {}
+    channels = row[11].value.replace(" ", "")
+    channelSplits = channels.split(',')
+    print(channelSplits)
+    for channelSplit in channelSplits:
+        channel = channelSplit.split(':')
+        channel_fees[channel[0]] = channel[1]
+    print(channel_fees)
+    ssg_fees = float(channel_fees.get('ssg').replace("%", ""))
+    gmarket_fees = float(channel_fees.get('gmarket').replace("%", ""))
+    auction_fees = float(channel_fees.get('auction').replace("%", ""))
+    st_fees = float(channel_fees.get('11st').replace("%", ""))
+    coupang_fees = float(channel_fees.get('coupang').replace("%", ""))
+    interpark_fees = float(channel_fees.get('interpark').replace("%", ""))
+    wemakeprice_fees = float(channel_fees.get('wemakeprice').replace("%", ""))
+    tmon_fees = float(channel_fees.get('tmon').replace("%", ""))
+    g9_fees = float(channel_fees.get('g9').replace("%", ""))
+    saleDate = replacenone(row[12].value).replace(" ", "")
+    if saleDate is not None:
+        dates = saleDate.split("~")
+        start_date = replacedate(dates[0])
+        end_date = replacedate(dates[1])
+        print(start_date,end_date)
+    create_date = replacedate(row[13].value)
+    update_date = replacedate(row[14].value)
+    if create_date is not None:
+        monthStr = datetime.strptime(create_date, '%Y-%m-%d')
+        week = monthStr.isocalendar()[1]
+        month = monthStr.month
+    else:
+        week = None
+        month = None
+
+    values = (
+        confirm,
+        state,
+        product_number,
+        provider_name,
+        provider_number,
+        product_name,
+        brand,
+        category,
+        category_number,
+        price,
+        start_date,
+        end_date,
+        create_date,
+        update_date,
+        week,
+        month,
+        is_deal,
+        ssg_fees,
+        gmarket_fees,
+        auction_fees,
+        st_fees,
+        coupang_fees,
+        interpark_fees,
+        wemakeprice_fees,
+        tmon_fees,
+        g9_fees,
+        confirm,
+        state,
+        product_name,
+        category,
+        category_number,
+        price,
+        start_date,
+        end_date,
+        create_date,
+        update_date,
+        week,
+        month,
+        is_deal,
+        ssg_fees,
+        gmarket_fees,
+        auction_fees,
+        st_fees,
+        coupang_fees,
+        interpark_fees,
+        wemakeprice_fees,
+        tmon_fees,
+        g9_fees
+    )
+    print(values)
+    cursor.execute(productSql, values)
 
 driver.quit()
 db.close()

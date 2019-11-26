@@ -122,4 +122,5 @@ for returnData in returnMerges:
 result = config.ST_LOGIN['excelPath'] + 'channelReturnResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
 wb.close()
+db.close()
 print(result)

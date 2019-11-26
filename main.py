@@ -3,20 +3,20 @@ import openpyxl
 from itertools import permutations, combinations_with_replacement
 from datetime import datetime
 
-application = Flask(__name__)
+app = Flask(__name__)
 
 
-@application.route('/')
+@app.route('/')
 def hello_world():
     return render_template('main.html')
 
 
-@application.route('/option')
+@app.route('/option')
 def option():
     return render_template('option.html')
 
 
-@application.route('/option/upload', methods=['POST', 'GET'])
+@app.route('/option/upload', methods=['POST', 'GET'])
 def option_slice():
     if request.method == 'POST':
 
@@ -119,4 +119,4 @@ def option_slice():
 
 
 if __name__=='__main__':
-    application.run(host='0.0.0.0')
+    app.run(host='0.0.0.0')

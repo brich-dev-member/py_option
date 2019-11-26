@@ -131,3 +131,27 @@ you may need to install the package for your language of choice, or simply load 
 spawned uWSGI master process (pid: 18936)
 spawned uWSGI worker 1 (pid: 18937, cores: 2)
 spawned uWSGI worker 2 (pid: 18938, cores: 2)
+Gracefully killing worker 1 (pid: 18937)...
+SIGINT/SIGQUIT received...killing workers...
+Gracefully killing worker 2 (pid: 6730)...
+SIGINT/SIGQUIT received...killing workers...
+SIGINT/SIGQUIT received...killing workers...
+Gracefully killing worker 2 (pid: 9004)...
+Gracefully killing worker 2 (pid: 18938)...
+SIGINT/SIGQUIT received...killing workers...
+worker 1 buried after 1 seconds
+worker 1 buried after 1 seconds
+worker 2 buried after 1 seconds
+goodbye to uWSGI.
+worker 2 buried after 1 seconds
+goodbye to uWSGI.
+VACUUM WARNING: unix socket mdb.sock changed inode. Skip removal
+VACUUM WARNING: unix socket mdb.sock changed inode. Skip removal
+worker 1 buried after 1 seconds
+worker 2 buried after 1 seconds
+goodbye to uWSGI.
+VACUUM: unix socket mdb.sock removed.
+worker 1 buried after 1 seconds
+worker 2 buried after 1 seconds
+goodbye to uWSGI.
+unlink(): No such file or directory [core/uwsgi.c line 1626]

@@ -8,10 +8,7 @@ from tkinter.filedialog import askopenfilename
 from tqdm import tqdm
 import config
 
-Tk().withdraw()
-filename = askopenfilename()
-
-path = filename
+path = '/var/www/works/py_option/2019_딜운영.xlsx'
 
 wb = load_workbook(path)
 
@@ -112,7 +109,7 @@ wa = wb.create_sheet('주간통계')
 
 newRow = 1
 
-startWeek = 42
+startWeek = 43
 endWeek = startWeek + 5
 for week in range(startWeek, endWeek):
     weekSql = f'''
@@ -177,29 +174,29 @@ for week in range(startWeek, endWeek):
         newRow += 1
     newRow += 2
 
-for col in ws.columns:
-    max_length = 0
-    columnIndex = col[0].column
-    column = get_column_letter(columnIndex)
-    for cell in col:
-        if max_length < len(str(cell.value)) < 30:
-            max_length = len(str(cell.value))
-        else:
-            pass
-    ws.column_dimensions[column].width = (max_length + 1) * 1.2
+# for col in ws.columns:
+#     max_length = 0
+#     columnIndex = col[0].column
+#     column = get_column_letter(columnIndex)
+#     for cell in col:
+#         if max_length < len(str(cell.value)) < 30:
+#             max_length = len(str(cell.value))
+#         else:
+#             pass
+#     ws.column_dimensions[column].width = (max_length + 1) * 1.2
 
-for col in wa.columns:
-    max_length = 0
-    columnIndex = col[0].column
-    column = get_column_letter(columnIndex)
-    for cell in col:
-        if max_length < len(str(cell.value)) < 30:
-            max_length = len(str(cell.value))
-        else:
-            pass
-    wa.column_dimensions[column].width = (max_length + 1) * 1.2
+# for col in wa.columns:
+#     max_length = 0
+#     columnIndex = col[0].column
+#     column = get_column_letter(columnIndex)
+#     for cell in col:
+#         if max_length < len(str(cell.value)) < 30:
+#             max_length = len(str(cell.value))
+#         else:
+#             pass
+#     wa.column_dimensions[column].width = (max_length + 1) * 1.2
 
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
-result = filename[0:filename.find('.')] + "_" + now + ".xlsx"
+result = "2019_딜운영_" + now + ".xlsx"
 wb.save(result)

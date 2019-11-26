@@ -20,8 +20,8 @@ def checkSchedule():
     totalNow = makeToday.strftime("%Y-%m-%d")
     makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
     endNow = makeLastMonth.strftime("%Y-%m-%d")
-    if makeWeek != '5' or makeWeek != '6':
-        if makeTime == '11:05' or makeTime == '14:00' or makeTime == '17:00':
+    if makeWeek != 5 or makeWeek != 6:
+        if makeTime == '11:00' or makeTime == '14:00' or makeTime == '17:00':
             runFile('11stCancel.py')
             runFile('returnCheck.py')
             runFile('wmpReturn.py')
@@ -29,11 +29,13 @@ def checkSchedule():
             runFile('mergeReturn.py')
             runFile('send11st.py')
             runFile('esmFees.py')
-
+        elif makeTime == '13:00' or makeTime == '16:00' or makeTime == '19:00':
+            runFile('dailyDataUpdate.py')
+            runFile('insertChnnelSell.py')
         else:
-            print(makeWeek, "/", makeTime)
+            print("week : ", makeWeek, "/ time : ", makeTime)
     else:
-        print('today is HolyDay')
+        print('zzzzzzzzzz..............')
 
 
 while True:

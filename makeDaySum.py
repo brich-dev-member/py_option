@@ -3,13 +3,21 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Border, Side, PatternFill, Font, Alignment, NamedStyle
 from openpyxl.utils.cell import get_column_letter
+import config
 
 wb = Workbook()
 
 ws = wb.active
 wa = wb.create_sheet('통합지표')
 
-db = pymysql.connect(host='localhost', user='root', password='root', db='excel', charset='utf8')
+# DB
+db = pymysql.connect(
+    host=config.DATABASE_CONFIG['host'],
+    user=config.DATABASE_CONFIG['user'],
+    password=config.DATABASE_CONFIG['password'],
+    db=config.DATABASE_CONFIG['db'],
+    charset=config.DATABASE_CONFIG['charset'],
+    autocommit=True)
 cursor = db.cursor()
 
 border = Border(
@@ -1381,17 +1389,17 @@ for weekRow in weekRows:
 
     weekStartRow += 1
 
-# 샐 너비 변
-for col in ws.columns:
-    max_length = 0
-    columnIndex = col[0].column
-    column = get_column_letter(columnIndex)
-    for cell in col:
-        if max_length < len(str(cell.value)) < 30:
-            max_length = len(str(cell.value))
-        else:
-            pass
-    ws.column_dimensions[column].width = (max_length + 1) * 1.2
+# # 샐 너비 변
+# for col in ws.columns:
+#     max_length = 0
+#     columnIndex = col[0].column
+#     column = get_column_letter(columnIndex)
+#     for cell in col:
+#         if max_length < len(str(cell.value)) < 30:
+#             max_length = len(str(cell.value))
+#         else:
+#             pass
+#     ws.column_dimensions[column].width = (max_length + 1) * 1.2
 
 makeToday = datetime.today()
 
