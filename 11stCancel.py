@@ -780,5 +780,7 @@ result = config.ST_LOGIN['excelPath'] + 'ebayOrderResult_' + totalNow + "_" + no
 wb.save(result)
 wb.close()
 print(result)
+cursor.close()
 db.close()
+driver.quit()
 display.stop()

@@ -11,8 +11,10 @@ import dateutil.relativedelta
 from openpyxl import load_workbook
 import time
 
-makeToday = datetime.today()
-now = makeToday.strftime("%m%d_%H%M")
+makeToday = datetime.now()
+makeWeek = datetime.weekday(makeToday)
+makeTime = datetime.time(makeToday).strftime('%H:%M')
+now = makeToday.strftime("%m-%d_%H-%M-%S")
 totalNow = makeToday.strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
@@ -23,6 +25,7 @@ cancelResultLists = []
 stOrderResultLists = []
 eabyOrderResultLists = []
 stReturnResultLists = []
+newReturnResultLsits = []
 
 
 def findFile(filename, listName):
@@ -41,6 +44,7 @@ for fileResult in fileResults:
     findFile('11stOrderResult', stOrderResultLists)
     findFile('ebayOrderResult', eabyOrderResultLists)
     findFile('channelReturnResult', stReturnResultLists)
+    findFile('channelReturnMissMatch', newReturnResultLsits)
 
 slack = Slacker(config.SLACK_API['token'])
 
@@ -64,6 +68,7 @@ checkFileToSend(cancelResultLists, 'CancelResult_')
 checkFileToSend(stOrderResultLists, '11stChannelOrderResult_')
 checkFileToSend(eabyOrderResultLists, 'ebayChannelOrderResult_')
 checkFileToSend(stReturnResultLists, 'channelReturnResult_')
+checkFileToSend(newReturnResultLsits, 'channelReturnMissMatch_')
 
 # print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
 # maxCancel = max(cancelResultLists)

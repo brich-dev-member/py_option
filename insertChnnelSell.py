@@ -151,5 +151,5 @@ for name in channel_name:
 
         print(refundInsertSql, refundValues)
         cursor.execute(refundInsertSql, refundValues)
-
+cursor.close()
 db.close()
