@@ -524,3 +524,5 @@ now = makeToday.strftime("%m%d_%H%M")
 result = '2019_데일리_' + now + '.xlsx'
 print(result)
 wb.save(result)
+cursor.close()
+db.close()

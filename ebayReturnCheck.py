@@ -227,7 +227,7 @@ for idx, row in enumerate(ws.iter_rows(min_row=2, max_row=maxRow )):
     mallId = replacenone(row[1].value)
     searchMall = mallId.split()
     if searchMall[1] == '(brich_07)':
-        channel = 'gmaket'
+        channel = 'gmarket'
     elif searchMall[1] == '(brich)':
         channel = 'auction'
     elif searchMall[1] == '(brichmall)':
@@ -315,7 +315,8 @@ for idx, row in enumerate(ws.iter_rows(min_row=2, max_row=maxRow )):
     print(channelSql, values)
     cursor.execute(channelSql, values)
 
-
+db.close()
+display.stop()
 driver.quit()
 # returnUrl = 'https://www.esmplus.com/Escrow/Claim/ReturnManagementSearch'
 # returnParms = {

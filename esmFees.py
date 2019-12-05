@@ -143,7 +143,7 @@ for idx, findProduct in enumerate(findProducts):
                 '''
             )
             time.sleep(3)
-
+db.close()
 driver.quit()
 
 

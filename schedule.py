@@ -21,22 +21,23 @@ def checkSchedule():
     makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
     endNow = makeLastMonth.strftime("%Y-%m-%d")
     if makeWeek != 5 or makeWeek != 6:
-        if makeTime == '11:00' or makeTime == '14:00' or makeTime == '17:00':
+        if makeTime == '11:30' or makeTime == '14:30' or makeTime == '17:30':
             runFile('11stCancel.py')
             runFile('returnCheck.py')
             runFile('ebayReturnCheck')
             runFile('wmpReturn.py')
             runFile('wmpReturnUpdate.py')
             runFile('mergeReturn.py')
-            runFile('newRetuenMatch.py')
+            runFile('newReturnMatch.py')
             runFile('send11st.py')
+        elif makeTime == '11:00' or makeTime == '14:00' or makeTime == '17:00':
+            runFile('requestBflow.py')
+            runFile('downloadBflow.py')
+        elif makeTime == '10:30' or  makeTime == '12:30' or makeTime == '15:30' or makeTime == '18:30':
             runFile('esmFees.py')
-        elif makeTime == '13:00' or makeTime == '16:00' or makeTime == '19:00':
-            runFile('dailyDataUpdate.py')
-            runFile('insertChnnelSell.py')
         else:
             print("week : ", makeWeek, "/ time : ", makeTime)
-    else:
+    elif makeWeek == 5 or makeWeek == 6:
         print('zzzzzzzzzz..............')
 
 

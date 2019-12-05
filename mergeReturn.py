@@ -2,15 +2,16 @@ import config
 from openpyxl import Workbook
 import pymysql
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.relativedelta
-
+from dateutil.parser import parser
 # 날짜 모듈
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
 totalNow = makeToday.strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
+weekNow = (makeToday - timedelta(weeks=1)).strftime("%Y-%m-%d")
 
 
 # DB
@@ -27,7 +28,8 @@ findSql = '''
         select b.`product_order_number` ,s.`channel_order_number`
         from `Bflow_returns` as b
         join `sell` as s
-        on b.`product_order_number` = s.`product_order_number`;
+        on b.`product_order_number` = s.`product_order_number`
+        and b.`fcode` = s.`fcode`;
         '''
 
 cursor.execute(findSql)
@@ -47,7 +49,8 @@ for productNumber in findProductNumbers:
     )
     cursor.execute(updateSql, values)
     print(updateSql, values)
-
+# 클레임 상태값 필드가 변경됨. refund_state 처리완료, 수거중 
+# claim_state 교환:1 , 반품:1 
 mergeSql = '''
             select b.`product_order_number`, b.`return_number`,  b.`channel_order_number`,
             b.`channel`, b.`return_request_at`, b.`claim_state`,
@@ -85,6 +88,10 @@ for returnData in returnMerges:
     return_delivery_arrive_at = returnData[13]
     return_delivery_complete_at = returnData[14]
 
+    lastWeek = parser(weekNow)
+    refundDate = parser(return_request_at)
+
+
     ws.cell(row=1, column=1).value = '상품주문번호'
     ws.cell(row=1, column=2).value = '반품번호'
     ws.cell(row=1, column=3).value = '채널 주문번호'
@@ -101,23 +108,66 @@ for returnData in returnMerges:
     ws.cell(row=1, column=14).value = '반품도착일'
     ws.cell(row=1, column=15).value = '반품완료일'
 
-    ws.cell(row=no, column=1).value = product_order_number
-    ws.cell(row=no, column=2).value = return_number
-    ws.cell(row=no, column=3).value = channel_order_number
-    ws.cell(row=no, column=4).value = channel
-    ws.cell(row=no, column=5).value = return_request_at
-    ws.cell(row=no, column=6).value = claim_state
-    ws.cell(row=no, column=7).value = channel_return_request_at
-    ws.cell(row=no, column=8).value = refund_state
-    ws.cell(row=no, column=9).value = return_delivery_fees
-    ws.cell(row=no, column=10).value = return_respons
-    ws.cell(row=no, column=11).value = payment_case
-    ws.cell(row=no, column=12).value = delivery_company
-    ws.cell(row=no, column=13).value = delivery_code
-    ws.cell(row=no, column=14).value = return_delivery_arrive_at
-    ws.cell(row=no, column=15).value = return_delivery_complete_at
+    if claim_state == '반품:수거중' and refund_state == '반품신청' or refund_state == '반품요청':
+        if return_request_at.date() < datetime.strptime(weekNow,'%Y-%m-%d').date():
+            ws.cell(row=no, column=1).value = product_order_number
+            ws.cell(row=no, column=2).value = return_number
+            ws.cell(row=no, column=3).value = channel_order_number
+            ws.cell(row=no, column=4).value = channel
+            ws.cell(row=no, column=5).value = return_request_at
+            ws.cell(row=no, column=6).value = claim_state
+            ws.cell(row=no, column=7).value = channel_return_request_at
+            ws.cell(row=no, column=8).value = refund_state
+            ws.cell(row=no, column=9).value = return_delivery_fees
+            ws.cell(row=no, column=10).value = return_respons
+            ws.cell(row=no, column=11).value = payment_case
+            ws.cell(row=no, column=12).value = delivery_company
+            ws.cell(row=no, column=13).value = delivery_code
+            ws.cell(row=no, column=14).value = return_delivery_arrive_at
+            ws.cell(row=no, column=15).value = return_delivery_complete_at
 
-    no += 1
+            no += 1
+        else:
+            continue
+    elif claim_state == '교환:수거중' and refund_state == '교환신청' or refund_state == '교환요청':
+        if return_request_at.date() < datetime.strptime(weekNow,'%Y-%m-%d').date():
+            ws.cell(row=no, column=1).value = product_order_number
+            ws.cell(row=no, column=2).value = return_number
+            ws.cell(row=no, column=3).value = channel_order_number
+            ws.cell(row=no, column=4).value = channel
+            ws.cell(row=no, column=5).value = return_request_at
+            ws.cell(row=no, column=6).value = claim_state
+            ws.cell(row=no, column=7).value = channel_return_request_at
+            ws.cell(row=no, column=8).value = refund_state
+            ws.cell(row=no, column=9).value = return_delivery_fees
+            ws.cell(row=no, column=10).value = return_respons
+            ws.cell(row=no, column=11).value = payment_case
+            ws.cell(row=no, column=12).value = delivery_company
+            ws.cell(row=no, column=13).value = delivery_code
+            ws.cell(row=no, column=14).value = return_delivery_arrive_at
+            ws.cell(row=no, column=15).value = return_delivery_complete_at
+
+            no += 1
+        else:
+            continue
+    else:
+        ws.cell(row=no, column=1).value = product_order_number
+        ws.cell(row=no, column=2).value = return_number
+        ws.cell(row=no, column=3).value = channel_order_number
+        ws.cell(row=no, column=4).value = channel
+        ws.cell(row=no, column=5).value = return_request_at
+        ws.cell(row=no, column=6).value = claim_state
+        ws.cell(row=no, column=7).value = channel_return_request_at
+        ws.cell(row=no, column=8).value = refund_state
+        ws.cell(row=no, column=9).value = return_delivery_fees
+        ws.cell(row=no, column=10).value = return_respons
+        ws.cell(row=no, column=11).value = payment_case
+        ws.cell(row=no, column=12).value = delivery_company
+        ws.cell(row=no, column=13).value = delivery_code
+        ws.cell(row=no, column=14).value = return_delivery_arrive_at
+        ws.cell(row=no, column=15).value = return_delivery_complete_at
+
+        no += 1
 
 result = config.ST_LOGIN['excelPath'] + 'channelReturnResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
