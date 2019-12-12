@@ -138,6 +138,8 @@ countSleep(1, 10)
 returnCompleteFile = changeFileToXlsx('claimGoodsList.xls', '11st_return_Complete_')
 print(returnCompleteFile)
 
+delOrder = '''DELETE From `bflow`.`channel_returns` where channel = "11st"'''
+cursor.execute(delOrder)
 
 channelSql = '''
     INSERT INTO `bflow`.`channel_returns` (

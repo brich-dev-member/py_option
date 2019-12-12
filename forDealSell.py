@@ -66,10 +66,6 @@ for row in rows:
         cursor.execute(sql)
         results = cursor.fetchall()
 
-        isDealSql = f'''
-                update `product` set `is_deal` = 1 where `product_number` = {product_number}; 
-                '''
-        cursor.execute(isDealSql)
 
         for result in results:
             deal_total_amount = result[0]
@@ -109,7 +105,7 @@ wa = wb.create_sheet('주간통계')
 
 newRow = 1
 
-startWeek = 44
+startWeek = 45
 endWeek = startWeek + 5
 for week in range(startWeek, endWeek):
     weekSql = f'''

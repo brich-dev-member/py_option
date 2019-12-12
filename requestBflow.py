@@ -50,17 +50,24 @@ prefs = {
 options.add_experimental_option("prefs", prefs)
 driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
-driver.get('https://partner.brich.co.kr/login')
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/button[2]').click()
-time.sleep(2)
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[1]').send_keys(
-    config.BFLOW_LOGIN['id'])
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[2]').send_keys(
-    config.BFLOW_LOGIN['password'])
-time.sleep(1)
-driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
-print('login')
-countSleep(1,4)
+try:
+
+    driver.get('https://partner.brich.co.kr/login')
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/button[2]').click()
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[1]').send_keys(
+        config.BFLOW_LOGIN['id'])
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[1]/div[2]/div/input[2]').send_keys(
+        config.BFLOW_LOGIN['password'])
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="app"]/div[2]/div/div/div/div/div/div[2]/div[2]/button[1]').click()
+    print('login')
+    countSleep(1,4)
+except Exception as ex:
+    driver.close()
+    driver.quit()
+    print(ex)
+
 
 try:
 # 주문 1개월 업데이트
@@ -142,7 +149,7 @@ except Exception as ex:
 
 countSleep(1, 5)
 
-
+driver.close()
 driver.quit()
 
 

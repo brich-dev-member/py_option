@@ -14,6 +14,7 @@ import dateutil.relativedelta
 import re
 from openpyxl import Workbook
 from pyvirtualdisplay import Display
+from reqStatus import requestStaus
 
 display = Display(visible=0, size=(1200, 900))
 display.start()
@@ -135,6 +136,7 @@ db = pymysql.connect(
     charset=config.DATABASE_CONFIG['charset'],
     autocommit=True)
 cursor = db.cursor()
+
 delOrder = '''DELETE From  `bflow`.`11st_cancel`'''
 cursor.execute(delOrder)
 sql = '''INSERT INTO `bflow`.`11st_cancel` (
@@ -165,6 +167,7 @@ sql = '''INSERT INTO `bflow`.`11st_cancel` (
          '''
 maxRow = ws.max_row - 2
 print(maxRow)
+
 for row in ws.iter_rows(min_row=7, max_row=maxRow):
     state = replacenone(row[1].value)
     channel_order_number = replacenone(row[2].value)
@@ -222,6 +225,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     )
     print(sql, values)
     cursor.execute(sql, values)
+os.remove(cancelFile)
 
 path = logiFile
 
@@ -276,7 +280,7 @@ for row in ws.iter_rows(min_row=3, max_row=maxRow):
     )
     cursor.execute(orderSql, orderValues)
     print(orderSql, orderValues)
-
+os.remove(logiFile)
 # 11번가 끝
 
 # 지마켓 시작
@@ -358,7 +362,7 @@ for row in ws.iter_rows(min_row=2):
     )
     cursor.execute(orderSql, orderValues)
     print(orderSql, orderValues)
-
+os.remove(gmarketFile)
 # 지마켓 끝
 
 wb = Workbook()
@@ -367,27 +371,48 @@ ws = wb.active
 no = 2
 
 cancelState = f'''
-        select s.`product_order_number`, s.`order_number`,
-        c.`channel_order_number`,c.`product_name`,c.`product_option`,s.`claim`,
-        s.`order_state`, c.`state`, c.`cancel_reason`, c.`cancel_detail_reason`
-        from sell as s join `11st_cancel` as c
-        on s.`channel_order_number` = c.`channel_order_number`
-        and s.`fcode` = c.`fcode`
-        where not s.`order_state` in ('결제취소')
+        select `channel_order_number`,`fcode`, `product_name`,
+        `product_option`, `state`, `cancel_reason`, `cancel_detail_reason`
+        from `11st_cancel`;
         '''
 cursor.execute(cancelState)
 cancelNowTotal = cursor.fetchall()
 for cancelNow in cancelNowTotal:
-    product_order_number = cancelNow[0]
-    order_number = cancelNow[1]
-    channel_order_number = cancelNow[2]
-    product_name = cancelNow[3]
-    product_option = cancelNow[4]
-    claim = cancelNow[5]
-    orderState = cancelNow[6]
-    state = cancelNow[7]
-    cancelReason = cancelNow[8]
-    cancelDetailReason = cancelNow[9]
+    channel_order_number = cancelNow[0]
+    fcode = cancelNow[1]
+    product_name = cancelNow[2]
+    product_option = cancelNow[3]
+    state = cancelNow[4]
+    cancelReason = cancelNow[5]
+    cancelDetailReason = cancelNow[6]
+    print(channel_order_number, fcode)
+    bflowStatus = requestStaus(channel_order_number, fcode)
+
+    if bflowStatus['success'] is True:
+
+        product_order_number = bflowStatus['message']['orderItemOptionId']
+        order_number = bflowStatus['message']['orderCode']
+        orderState = bflowStatus['message']['status']
+        claimType = bflowStatus['message']['claims'][0]['claimType']
+        claimStatus = bflowStatus['message']['claims'][0]['claimStatus']
+        if len(bflowStatus['message']['claims']) > 0:
+            if claimType is None:
+                    claim_state = None
+            elif claimType is 'cancel':
+                    claimType = '취소'
+                    claim_state = claimType + ":" + claimStatus
+            elif claimType is 'return':
+                    claimType = '반품'
+                    claim_state = claimType + ":" + claimStatus
+            elif claimType is 'exchange':
+                    claimType = '교환'
+                    claim_state = claimType + ":" + claimStatus
+            else:
+                    claim_state = claimType + ":" + claimStatus
+        else:
+            claim_state = None
+    else:
+        orderState = None
 
     ws.cell(row=1, column=1).value = '상품주문번호'
     ws.cell(row=1, column=2).value = '주문번호'
@@ -409,7 +434,7 @@ for cancelNow in cancelNowTotal:
         ws.cell(row=no, column=3).value = channel_order_number
         ws.cell(row=no, column=4).value = product_name
         ws.cell(row=no, column=5).value = product_option
-        ws.cell(row=no, column=6).value = claim
+        ws.cell(row=no, column=6).value = claim_state
         ws.cell(row=no, column=7).value = orderState
         ws.cell(row=no, column=8).value = state
         ws.cell(row=no, column=9).value = cancelReason
@@ -446,64 +471,36 @@ for optionRow in optionRows:
     cursor.execute(updateSql, updateValue)
     print(updateSql, updateValue)
 
-stOrderList = f'''
-            select s.`product_order_number`, c.`channel_order_number`,s.`product_name`,
-            s.`product_option`,s.`channel`, s.`claim`, s.`order_state`, c.`state` 
-            from `channel_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
-            and c.`fcode` = s.`fcode`
-            where c.`payment_at` >= {endNow} and c.`channel` = '11st';
+ebayFcode = f'''
+            select c.`id`, c.`channel_order_number`, s.`fcode` 
+            from  `channel_order` as c join `sell` as s
+            on c.`channel_order_number` = s.`channel_order_number`
+            where c.`channel` in ('gmarket', 'auction');
             '''
+cursor.execute(ebayFcode)
+ebayFcodes = cursor.fetchall()
 
-cursor.execute(stOrderList)
-stOrderRows = cursor.fetchall()
+for Fcode in ebayFcodes:
+    idNo = Fcode[0]
+    channelOrderNumber = Fcode[1]
+    fcode = Fcode[2]
 
-wb = Workbook()
+    FcodeUpdate = '''
+                update `channel_order` set fcode = %s where id = %s
+                '''
+    updateValue = (
+        fcode,
+        idNo
+    )
+    cursor.execute(FcodeUpdate, updateValue)
+    print(FcodeUpdate, updateValue)
 
-ws = wb.active
-no = 2
-for stOrderRow in stOrderRows:
-    productOrderNumber = stOrderRow[0]
-    channelOrderNumber = stOrderRow[1]
-    productName = stOrderRow[2]
-    productOption = stOrderRow[3]
-    claim = stOrderRow[5]
-    orderState = stOrderRow[6]
-    state = stOrderRow[7]
-    channel = stOrderRow[4]
-
-    ws.cell(row=1, column=1).value = '상품주문번호'
-    ws.cell(row=1, column=2).value = '외부채널주문번호'
-    ws.cell(row=1, column=3).value = '상품명'
-    ws.cell(row=1, column=4).value = '상품옵션'
-    ws.cell(row=1, column=5).value = '브리치 주문상태'
-    ws.cell(row=1, column=6).value = '브리치 클레임상태'
-    ws.cell(row=1, column=7).value = '채널 상태'
-    ws.cell(row=1, column=8).value = '채널명'
-
-    if orderState == '배송준비' or orderState == '결제확인' or orderState == '배송지연' and state == '배송준비중':
-        print('skip')
-        continue
-    else:
-        ws.cell(row=no, column=1).value = productOrderNumber
-        ws.cell(row=no, column=2).value = channelOrderNumber
-        ws.cell(row=no, column=3).value = productName
-        ws.cell(row=no, column=4).value = productOption
-        ws.cell(row=no, column=5).value = claim
-        ws.cell(row=no, column=6).value = orderState
-        ws.cell(row=no, column=7).value = state
-        ws.cell(row=no, column=8).value = channel
-        no += 1
-
-result = config.ST_LOGIN['excelPath'] + '11stOrderResult_' + totalNow + "_" + now + '.xlsx'
-wb.save(result)
-wb.close()
-print(result)
+print('FcodeUpdate')
 
 ebayOrderList = f'''
-            select s.`product_order_number`, c.`channel_order_number`,s.`product_name`,
-            s.`product_option`, s.`channel`,s.`claim`, s.`order_state`, c.`state` 
-            from `channel_order` as c join `sell` as s on c.`channel_order_number` = s.`channel_order_number`
-            where c.`payment_at` >= {endNow} and c.`channel` in ('gmarket','auction');
+            select `channel_order_number`,`fcode`, `product_name`, `product_option`, `state` 
+            from `channel_order` where `payment_at` >= {endNow} and `channel` in ('gmarket', 'auction')
+            and state not in ('입금대기', '판매자송금', '구매결정완료'); 
             '''
 
 cursor.execute(ebayOrderList)
@@ -515,14 +512,39 @@ ws = wb.active
 no = 2
 
 for ebayOrderRow in ebayOrderRows:
-    productOrderNumber = ebayOrderRow[0]
-    channelOrderNumber = ebayOrderRow[1]
+    channelOrderNumber = ebayOrderRow[0]
+    fcode = ebayOrderRow[1]
     productName = ebayOrderRow[2]
     productOption = ebayOrderRow[3]
-    claim = ebayOrderRow[5]
-    orderState = ebayOrderRow[6]
-    state = ebayOrderRow[7]
-    channel = ebayOrderRow[4]
+    state = ebayOrderRow[4]
+
+
+    bflowStatus = requestStaus(channelOrderNumber, fcode)
+
+    if bflowStatus['success'] is True:
+
+        productOrderNumber = bflowStatus['message']['orderItemOptionId']
+        orderState = bflowStatus['message']['status']
+        channel = bflowStatus['message']['channel']
+        if len(bflowStatus['message']['claims']) > 0:
+            claimType = bflowStatus['message']['claims'][0]['claimType']
+            claimStatus = bflowStatus['message']['claims'][0]['claimStatus']
+
+            if claimType is None:
+                claim_state = None
+            elif claimType is 'cancel':
+                claimType = '취소'
+                claim_state = claimType + ":" + claimStatus
+            elif claimType is 'return':
+                claimType = '반품'
+                claim_state = claimType + ":" + claimStatus
+            elif claimType is 'exchange':
+                claimType = '교환'
+                claim_state = claimType + ":" + claimStatus
+            else:
+                claim_state = claimType + ":" + claimStatus
+        else:
+            claim_state = None
 
     ws.cell(row=1, column=1).value = '상품주문번호'
     ws.cell(row=1, column=2).value = '외부채널주문번호'
@@ -593,7 +615,7 @@ for ebayOrderRow in ebayOrderRows:
         ws.cell(row=no, column=2).value = channelOrderNumber
         ws.cell(row=no, column=3).value = productName
         ws.cell(row=no, column=4).value = productOption
-        ws.cell(row=no, column=5).value = claim
+        ws.cell(row=no, column=5).value = claim_state
         ws.cell(row=no, column=6).value = orderState
         ws.cell(row=no, column=7).value = state
         ws.cell(row=no, column=8).value = channel
@@ -603,7 +625,7 @@ for ebayOrderRow in ebayOrderRows:
         ws.cell(row=no, column=2).value = channelOrderNumber
         ws.cell(row=no, column=3).value = productName
         ws.cell(row=no, column=4).value = productOption
-        ws.cell(row=no, column=5).value = claim
+        ws.cell(row=no, column=5).value = claim_state
         ws.cell(row=no, column=6).value = orderState
         ws.cell(row=no, column=7).value = state
         ws.cell(row=no, column=8).value = channel

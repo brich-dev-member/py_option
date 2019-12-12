@@ -63,12 +63,27 @@ def checkFileToSend(resultList, sendName):
         title=sendTitle,
     )
 
+try:
+    checkFileToSend(cancelResultLists, 'CancelResult_')
+except Exception as ex:
+    print(ex)
 
-checkFileToSend(cancelResultLists, 'CancelResult_')
-checkFileToSend(stOrderResultLists, '11stChannelOrderResult_')
-checkFileToSend(eabyOrderResultLists, 'ebayChannelOrderResult_')
-checkFileToSend(stReturnResultLists, 'channelReturnResult_')
-checkFileToSend(newReturnResultLsits, 'channelReturnMissMatch_')
+try:
+    checkFileToSend(stOrderResultLists, '11stChannelOrderResult_')
+except Exception as ex:
+    print(ex)
+try:
+    checkFileToSend(eabyOrderResultLists, 'ebayChannelOrderResult_')
+except Exception as ex:
+    print(ex)
+try:
+    checkFileToSend(stReturnResultLists, 'channelReturnResult_')
+except Exception as ex:
+    print(ex)
+try:
+    checkFileToSend(newReturnResultLsits, 'channelReturnMissMatch_')
+except Exception as ex:
+    print(ex)
 
 # print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
 # maxCancel = max(cancelResultLists)

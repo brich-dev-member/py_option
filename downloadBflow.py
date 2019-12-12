@@ -64,7 +64,8 @@ now = makeToday.strftime("%m-%d_%H-%M-%S")
 totalNow = makeToday.strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
-findNow = makeToday.strftime("%Y%m%d%H")
+# findNow = makeToday.strftime("%Y%m%d%H")
+findNow = makeToday.strftime("%Y%m%d")
 
 options = Options()
 options.add_argument('--headless')
@@ -162,7 +163,7 @@ def insertDB():
                     ) VALUES (
                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE payment_at = %s, order_state = %s, claim = %s, delivery_at = %s, delivery_complete = %s,
-                    order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, fcode = %s
+                    order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, fcode = %s, channel = %s
                     '''
 
             iter_row = iter(ws.rows)
@@ -194,9 +195,9 @@ def insertDB():
                     channel = 'wemakeprice'
                 elif korChannel == '티몬':
                     channel = 'tmon'
-                elif korChannel == 'g9':
+                elif korChannel == 'G9':
                     channel = 'g9'
-                elif korChannel == 'ssg':
+                elif korChannel == 'SSG':
                     channel = 'ssg'
                 product_number = replacenone(row[20].value)
                 product_amount = replaceint(row[21].value)
@@ -236,7 +237,7 @@ def insertDB():
                     channel, product_number, product_amount, option_amount, seller_discount, quantity, total_amount, delivery_at,
                     delivery_complete, order_complete_at, auto_complete_at, category_number, buyer_gender, buyer_age,
                     crawler, provider_number, channel_order_number, week, month, fcode, payment_at, order_state, claim, delivery_at,
-                    delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month, fcode
+                    delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month, fcode, channel
                 )
                 cursor.execute(sql, values)
                 print(sql, values)

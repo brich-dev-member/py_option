@@ -146,6 +146,9 @@ os.rename(wmpOriExcel, wmpResultExcel)
 wb = load_workbook(wmpResultExcel)
 ws = wb.active
 
+delOrder = '''DELETE From  `bflow`.`channel_returns` where channel = "wemakeprice"'''
+cursor.execute(delOrder)
+
 channelSql = '''
     INSERT INTO `bflow`.`channel_returns` (
         order_number,

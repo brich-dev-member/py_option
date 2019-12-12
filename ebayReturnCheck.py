@@ -155,6 +155,10 @@ ebayResult = changeFileToXlsx(ebayReturnFileName, 'ebayRetuneRequst_')
 
 print('파일 변경 완료')
 
+delOrder = '''DELETE From `bflow`.`channel_returns` where channel in ("gmarket","auction","g9")'''
+cursor.execute(delOrder)
+
+
 channelSql = '''
     INSERT INTO `bflow`.`channel_returns` (
         order_number,
