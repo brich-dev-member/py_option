@@ -285,7 +285,7 @@ for row in ws.iter_rows(min_row=3):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(wmpResultExcel)
 driver.get('http://biz.wemakeprice.com/dealer/claim_exchange/find')
 countSleep(1, 3)
 
@@ -390,6 +390,6 @@ for row in ws.iter_rows(min_row=3):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(wmpExchangeResultExcel)
 driver.quit()
 display.stop()

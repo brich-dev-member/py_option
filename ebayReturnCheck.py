@@ -318,7 +318,7 @@ for idx, row in enumerate(ws.iter_rows(min_row=2, max_row=maxRow )):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(ebayResult)
 db.close()
 display.stop()
 driver.quit()

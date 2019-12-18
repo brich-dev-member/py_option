@@ -35,7 +35,7 @@ for week in weeks:
 
 listSql = f'''
         select distinct(`provider_name`) FROM `sell` where month = {month} or
-        week in ({weekList[0]},{weekList[1]})
+        week in ({weekList[0]},{weekList[1]},{weekList[2]})
         group by `provider_name`
         order by sum(total_amount) desc;
         '''
@@ -51,7 +51,8 @@ for providerList in providerLists:
     amountSql = f'''
         select sum(`total_amount`),
         (select sum(`total_amount`) from sell where week={weekList[0]} and provider_name = '{provider_name}'),
-        (select sum(`total_amount`) from sell where week={weekList[1]} and provider_name = '{provider_name}')
+        (select sum(`total_amount`) from sell where week={weekList[1]} and provider_name = '{provider_name}'),
+        (select sum(`total_amount`) from sell where week={weekList[2]} and provider_name = '{provider_name}')
 
         from sell where provider_name = '{provider_name}' and month = {month};
     '''
@@ -64,7 +65,7 @@ for providerList in providerLists:
     amount1st = providerAmountLists[0][0]
     amount2nd = providerAmountLists[0][1]
     amount3rd = providerAmountLists[0][2]
-    # amount4st = providerAmountLists[0][3]
+    amount4st = providerAmountLists[0][3]
     # amount5st = providerAmountLists[0][4]
     # amount6st = providerAmountLists[0][5]
 
@@ -72,7 +73,7 @@ for providerList in providerLists:
     ws.cell(row=1, column=2).value = f'{month}월 판매'
     ws.cell(row=1, column=3).value = f'{weekList[0]}주차 판매'
     ws.cell(row=1, column=4).value = f'{weekList[1]}주차 판매'
-    # ws.cell(row=1, column=5).value = f'{weekList[2]}주차 판매'
+    ws.cell(row=1, column=5).value = f'{weekList[2]}주차 판매'
     # ws.cell(row=1, column=6).value = f'{weekList[3]}주차 판매'
     # ws.cell(row=1, column=7).value = f'{weekList[4]}주차 판매'
 
@@ -80,7 +81,7 @@ for providerList in providerLists:
     ws.cell(row=no, column=2).value = amount1st
     ws.cell(row=no, column=3).value = amount2nd
     ws.cell(row=no, column=4).value = amount3rd
-    # ws.cell(row=no, column=5).value = amount4st
+    ws.cell(row=no, column=5).value = amount4st
     # ws.cell(row=no, column=6).value = amount5st
     # ws.cell(row=no, column=7).value = amount6st
 
@@ -88,7 +89,7 @@ for providerList in providerLists:
 
 productListSql = f'''
         select distinct(`provider_number`), `provider_name` FROM `product` where month = {month} or
-        week in ({weekList[0]},{weekList[1]})
+        week in ({weekList[0]},{weekList[1]},{weekList[2]})
         group by `provider_number`
         order by count(product_number) desc;
         '''
@@ -113,7 +114,8 @@ for productProviderList in productProviderLists:
     productSql = f'''
             select count(`product_number`),
             (select count(`product_number`) from product where week={weekList[0]} and provider_number = '{product_provider_number}'),
-            (select count(`product_number`) from product where week={weekList[1]} and provider_number = '{product_provider_number}')
+            (select count(`product_number`) from product where week={weekList[1]} and provider_number = '{product_provider_number}'),
+            (select count(`product_number`) from product where week={weekList[2]} and provider_number = '{product_provider_number}')
             from product where provider_number = '{product_provider_number}' and month = {month};
         '''
 
@@ -127,7 +129,7 @@ for productProviderList in productProviderLists:
     productCount1st = noZeroCount(providerProductLists[0][0])
     productCount2nd = noZeroCount(providerProductLists[0][1])
     productCount3rd = noZeroCount(providerProductLists[0][2])
-    # productCount4st = noZeroCount(providerProductLists[0][3])
+    productCount4st = noZeroCount(providerProductLists[0][3])
     # productCount5st = noZeroCount(providerProductLists[0][4])
     # productCount6st = noZeroCount(providerProductLists[0][5])
 
@@ -135,7 +137,7 @@ for productProviderList in productProviderLists:
     wa.cell(row=1, column=2).value = f'{month}월 등록수'
     wa.cell(row=1, column=3).value = f'{weekList[0]}주차 등록수'
     wa.cell(row=1, column=4).value = f'{weekList[1]}주차 등록수'
-    # wa.cell(row=1, column=5).value = f'{weekList[2]}주차 등록수'
+    wa.cell(row=1, column=5).value = f'{weekList[2]}주차 등록수'
     # wa.cell(row=1, column=6).value = f'{weekList[3]}주차 등록수'
     # wa.cell(row=1, column=7).value = f'{weekList[4]}주차 등록수'
 
@@ -143,7 +145,7 @@ for productProviderList in productProviderLists:
     wa.cell(row=pno, column=2).value = productCount1st
     wa.cell(row=pno, column=3).value = productCount2nd
     wa.cell(row=pno, column=4).value = productCount3rd
-    # wa.cell(row=pno, column=5).value = productCount4st
+    wa.cell(row=pno, column=5).value = productCount4st
     # wa.cell(row=pno, column=6).value = productCount5st
     # wa.cell(row=pno, column=7).value = productCount6st
 

@@ -62,6 +62,8 @@ def checkFileToSend(resultList, sendName):
         channels=config.SLACK_API['channels'],
         title=sendTitle,
     )
+    print('Remove File :', maxRow)
+    os.remove(maxRow)
 
 try:
     checkFileToSend(cancelResultLists, 'CancelResult_')

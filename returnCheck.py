@@ -286,7 +286,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(returnFile)
 path = returnCompleteFile
 
 wb = load_workbook(path)
@@ -376,7 +376,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(returnCompleteFile)
 # 11번가 교환 데이터 수집
 
 driver.get('https://soffice.11st.co.kr/escrow/AuthSellerClaimManager.tmall?method=getClaimList&clm=02&searchVer=02')
@@ -479,7 +479,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     )
     print(channelSql, values)
     cursor.execute(channelSql, values)
-
+os.remove(returnRequestFile)
 driver.quit()
 
 display.stop()

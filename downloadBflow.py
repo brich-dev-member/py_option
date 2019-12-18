@@ -199,6 +199,8 @@ def insertDB():
                     channel = 'g9'
                 elif korChannel == 'SSG':
                     channel = 'ssg'
+                elif korChannel == '쿠팡':
+                    channel = 'coupang'
                 product_number = replacenone(row[20].value)
                 product_amount = replaceint(row[21].value)
                 option_amount = replaceint(row[22].value)
@@ -732,4 +734,5 @@ insertDB()
 
 
 db.close()
+driver.close()
 driver.quit()

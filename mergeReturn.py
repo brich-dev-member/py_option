@@ -4,8 +4,8 @@ import pymysql
 from datetime import date
 from datetime import datetime, timedelta
 import dateutil.relativedelta
-from dateutil.parser import parser
-from reqStatus import requestStaus
+from dateutil.parser import parse
+from reqStatus import requestStaus, requestStausChannel
 # 날짜 모듈
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
@@ -30,7 +30,7 @@ cursor = db.cursor()
 mergeSql = '''
             select `order_number`, `fcode`, `return_request_at`, `refund_state`, `return_delivery_fees`,
             `return_respons`, `payment_case`, `delivery_company`, `delivery_code`, `return_delivery_arrive_at`,
-            `return_delivery_complete_at`
+            `return_delivery_complete_at`, `channel`
             from `channel_returns`;
             '''
 cursor.execute(mergeSql)
@@ -54,9 +54,20 @@ for returnData in returnMerges:
     delivery_code = returnData[8]
     return_delivery_arrive_at = returnData[9]
     return_delivery_complete_at = returnData[10]
-
-    bflowStatus = requestStaus(channel_order_number, fcode)
-    print(bflowStatus['message'])
+    channel = returnData[11]
+    if channel == 'gmarket':
+        bflowStatus = requestStausChannel(channel_order_number, channel)
+        print(bflowStatus['message'])
+    elif channel == 'auction':
+        bflowStatus = requestStausChannel(channel_order_number, channel)
+        print(bflowStatus['message'])
+    elif channel == 'g9':
+        bflowStatus = requestStausChannel(channel_order_number, channel)
+        print(bflowStatus['message'])
+    else:
+        bflowStatus = requestStaus(channel_order_number, fcode)
+        print(bflowStatus['message'])
+        
     if bflowStatus['success'] is True:
         product_order_number = bflowStatus['message']['orderItemOptionId']
         channel = bflowStatus['message']['channel']
@@ -80,16 +91,14 @@ for returnData in returnMerges:
             else:
                 claim_state = claimType + ":" + claimStatus
         else:
-            claim_state = None
+            claim_state = bflowStatus['message']['status']
             return_number = None
             return_request_at = None
     
 
-        print(claimType, claim_state)
-        print(claim_state)
+        print(claim_state, refund_state)
 
-        lastWeek = parser(weekNow)
-        # refundDate = parser(return_request_at)
+        
 
         ws.cell(row=1, column=1).value = '상품주문번호'
         ws.cell(row=1, column=2).value = '반품번호'
@@ -110,8 +119,16 @@ for returnData in returnMerges:
     # 채널 상태값이 교환거부 / 교환철회 / 반품보류 / 반품철회 
     # 11번가는 반품취소철회 메뉴 데이터
     # 11번가 반품 비용처리 payment_case = 박스에동봉 / 판매자에게 직접송급은 별도의 리스트 관리
+        lastWeek = parse(weekNow)
+        refundDate = channel_return_request_at
+        print(lastWeek.date(), refundDate.date())
+
+
 
         if claim_state == '반품:수거중' and refund_state == '반품신청' or refund_state == '반품요청':
+            if refundDate.date() > lastWeek.date():
+                pass
+            else:
                 ws.cell(row=no, column=1).value = product_order_number
                 ws.cell(row=no, column=2).value = return_number
                 ws.cell(row=no, column=3).value = channel_order_number
@@ -130,6 +147,9 @@ for returnData in returnMerges:
 
                 no += 1
         elif claim_state == '교환:수거중' and refund_state == '교환신청' or refund_state == '교환요청':
+            if refundDate.date() > lastWeek.date():
+                pass
+            else:
                 ws.cell(row=no, column=1).value = product_order_number
                 ws.cell(row=no, column=2).value = return_number
                 ws.cell(row=no, column=3).value = channel_order_number
@@ -147,6 +167,26 @@ for returnData in returnMerges:
                 ws.cell(row=no, column=15).value = return_delivery_complete_at
 
                 no += 1
+        elif claim_state == '반품:처리완료' and refund_state == '환불승인완료' or refund_state == '반품완료':
+            pass
+        elif channel == 'wemakprice' and refund_state == '반품철회' or refund_state == '교환거부' or refund_state == '교환철회':
+            ws.cell(row=no, column=1).value = product_order_number
+            ws.cell(row=no, column=2).value = return_number
+            ws.cell(row=no, column=3).value = channel_order_number
+            ws.cell(row=no, column=4).value = channel
+            ws.cell(row=no, column=5).value = return_request_at
+            ws.cell(row=no, column=6).value = claim_state
+            ws.cell(row=no, column=7).value = channel_return_request_at
+            ws.cell(row=no, column=8).value = refund_state
+            ws.cell(row=no, column=9).value = return_delivery_fees
+            ws.cell(row=no, column=10).value = return_respons
+            ws.cell(row=no, column=11).value = payment_case
+            ws.cell(row=no, column=12).value = delivery_company
+            ws.cell(row=no, column=13).value = delivery_code
+            ws.cell(row=no, column=14).value = return_delivery_arrive_at
+            ws.cell(row=no, column=15).value = return_delivery_complete_at
+
+            no += 1
         else:
             ws.cell(row=no, column=1).value = product_order_number
             ws.cell(row=no, column=2).value = return_number
