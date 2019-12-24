@@ -105,7 +105,7 @@ wa = wb.create_sheet('주간통계')
 
 newRow = 1
 
-startWeek = 46
+startWeek = 47
 endWeek = startWeek + 5
 for week in range(startWeek, endWeek):
     weekSql = f'''

@@ -476,8 +476,8 @@ for optionRow in optionRows:
 
 ebayOrderList = f'''
             select `channel_order_number`, `product_name`, `state`, `channel`
-            from `channel_order` where `payment_at` >= 2019-11-09 and `channel` in ('gmarket', 'auction')
-            and state not in ('입금대기', '판매자송금', '구매결정완료'); 
+            from `channel_order` where `payment_at` >= 2019-11-09 and `channel` in ('gmarket', 'auction', 'g9')
+            and state not in ('입금대기', '판매자송금', '구매결정완료', '배송지연/발송예정', '주문확인'); 
             '''
 
 cursor.execute(ebayOrderList)

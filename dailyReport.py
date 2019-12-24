@@ -19,6 +19,7 @@ db = pymysql.connect(
     autocommit=True)
 cursor = db.cursor()
 
+reportYear = 2019
 reportMonth = 11, 12
 
 weekSql =f'''
@@ -86,7 +87,7 @@ weekSql =f'''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) GROUP BY week
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year = {reportYear} GROUP BY week
         '''
 
 cursor.execute(weekSql)
@@ -261,7 +262,16 @@ for weekAmount in weekAmounts:
     ws.cell(row=no + 4, column=8).value = f'''=sum(h{no}:h{no + 3})'''
     ws.cell(row=no + 4, column=9).value = f'''=sum(i{no}:i{no + 3})'''
     ws.cell(row=no + 4, column=10).value = f'''=i{no+4}/e{no+4}'''
-    no += 6
+
+    ws.cell(row=no + 5, column=4).value = f'''=sum(d{no + 1}:d{no + 3})'''
+    ws.cell(row=no + 5, column=5).value = f'''=sum(e{no + 1}:e{no + 3})'''
+    ws.cell(row=no + 5, column=6).value = f'''=sum(f{no + 1}:f{no + 3})'''
+    ws.cell(row=no + 5, column=7).value = f'''=sum(g{no + 1}:g{no + 3})'''
+    ws.cell(row=no + 5, column=8).value = f'''=sum(h{no + 1}:h{no + 3})'''
+    ws.cell(row=no + 5, column=9).value = f'''=sum(i{no + 1}:i{no + 3})'''
+    ws.cell(row=no + 5, column=10).value = f'''=i{no+5}/e{no+5}'''
+
+    no += 7
 
 monthSql =f'''
         SELECT 
@@ -328,7 +338,7 @@ monthSql =f'''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) GROUP BY month
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year = {reportYear} GROUP BY month
         '''
 
 cursor.execute(monthSql)
@@ -505,7 +515,17 @@ for monthAmount in monthAmounts:
     ws.cell(row=monthNo + 4, column=8).value = f'''=sum(h{monthNo}:h{monthNo + 3})'''
     ws.cell(row=monthNo + 4, column=9).value = f'''=sum(i{monthNo}:i{monthNo + 3})'''
     ws.cell(row=monthNo + 4, column=10).value = f'''=i{monthNo+4}/e{monthNo+4}'''
-    monthNo += 6
+
+    ws.cell(row=monthNo + 5, column=4).value = f'''=sum(d{monthNo + 1}:d{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=5).value = f'''=sum(e{monthNo + 1}:e{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=6).value = f'''=sum(f{monthNo + 1}:f{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=7).value = f'''=sum(g{monthNo + 1}:g{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=8).value = f'''=sum(h{monthNo + 1}:h{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=9).value = f'''=sum(i{monthNo + 1}:i{monthNo + 3})'''
+    ws.cell(row=monthNo + 5, column=10).value = f'''=i{monthNo+5}/e{monthNo+5}'''
+
+
+    monthNo += 7
 
 
 # for col in ws.columns:

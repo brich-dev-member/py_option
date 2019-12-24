@@ -32,6 +32,7 @@ def checkSchedule():
             runFile('wmpReturnUpdate.py')
             runFile('mergeReturn.py')
             runFile('newReturnMatch.py')
+            runFile('wmp2Return.py')
             runFile('send11st.py')
             subprocess.call('killall chrome', shell=True)
             subprocess.call('killall chromedriver', shell=True)

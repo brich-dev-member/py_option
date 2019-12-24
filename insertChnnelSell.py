@@ -41,15 +41,17 @@ for name in channel_name:
     date,
     week,
     month,
+    year,
     {name}_total_amount,
     {name}_qty,
     {name}_ct,
     {name}_sales,
     {name}_cogs
     )
-    values (%s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
+    values (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
     week = %s,
     month = %s,
+    year = %s,
     {name}_total_amount = %s,
     {name}_qty = %s,
     {name}_ct = %s,
@@ -61,12 +63,14 @@ for name in channel_name:
             date,
             week,
             month,
+            year,
             {name}_refund_amount,
             {name}_refund_qty
             )
-            values (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
+            values (%s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE
             week = %s,
             month = %s,
+            year = %s,
             {name}_refund_amount = %s,
             {name}_refund_qty = %s
              '''
@@ -74,6 +78,7 @@ for name in channel_name:
         date = row[0]
         week = date.isocalendar()[1]
         month = date.month
+        year = date.year
         total_amount = row[2]
         qty = row[3]
         ct = round(total_amount / qty, 0)
@@ -113,6 +118,7 @@ for name in channel_name:
             date,
             week,
             month,
+            year,
             total_amount,
             qty,
             ct,
@@ -120,6 +126,7 @@ for name in channel_name:
             cogs,
             week,
             month,
+            year,
             total_amount,
             qty,
             ct,
@@ -134,6 +141,7 @@ for name in channel_name:
         date = refundRow[0]
         week = date.isocalendar()[1]
         month = date.month
+        year = date.year
         total_amount = refundRow[2]
         qty = refundRow[3]
 
@@ -141,10 +149,12 @@ for name in channel_name:
             date,
             week,
             month,
+            year,
             total_amount,
             qty,
             week,
             month,
+            year,
             total_amount,
             qty
         )

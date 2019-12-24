@@ -112,13 +112,9 @@ for returnList in newReturn:
         ws.cell(row=1, column=14).value = '송장번호'
         ws.cell(row=1, column=15).value = '수거 완료일'
         if refund_state == '반품완료':
-            pass
-        elif claimType == '취소':
-            pass
-        elif claimType == '반품':
-            pass
-        elif claimType == '교환':
-            pass
+            continue
+        elif order_state == '결제취소' or order_state == '반품' or order_state == '교환':
+            continue
         else:
             ws.cell(row=no, column=1).value =  product_order_number
             ws.cell(row=no, column=2).value =  order_number

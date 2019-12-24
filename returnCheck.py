@@ -121,6 +121,7 @@ def changeFileToXlsx(originalName, resultName):
     os.rename(stOriExcel, stResultExcel)
 
     p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
+    os.remove(stResultExcel)
     return stResultXlsx
 
 
@@ -287,6 +288,7 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     print(channelSql, values)
     cursor.execute(channelSql, values)
 os.remove(returnFile)
+
 path = returnCompleteFile
 
 wb = load_workbook(path)
@@ -481,6 +483,6 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     cursor.execute(channelSql, values)
 os.remove(returnRequestFile)
 driver.quit()
-
+db.close()
 display.stop()
 

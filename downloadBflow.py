@@ -159,11 +159,12 @@ def insertDB():
                     channel_order_number,
                     week,
                     month,
+                    year,
                     fcode
                     ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE payment_at = %s, order_state = %s, claim = %s, delivery_at = %s, delivery_complete = %s,
-                    order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, fcode = %s, channel = %s
+                    order_complete_at =%s, auto_complete_at = %s, channel_order_number = %s, week = %s, month = %s, year = %s, fcode = %s, channel = %s
                     '''
 
             iter_row = iter(ws.rows)
@@ -221,9 +222,11 @@ def insertDB():
                     monthStr = datetime.strptime(payment_at, '%Y-%m-%d')
                     week = monthStr.isocalendar()[1]
                     month = monthStr.month
+                    year = monthStr.year
                 else:
                     week = None
                     month = None
+                    year = None
 
                 if product_option is None:
                     fcode = None
@@ -238,8 +241,8 @@ def insertDB():
                     product_order_number, order_number, payment_at, order_state, claim, provider_name, product_name, product_option,
                     channel, product_number, product_amount, option_amount, seller_discount, quantity, total_amount, delivery_at,
                     delivery_complete, order_complete_at, auto_complete_at, category_number, buyer_gender, buyer_age,
-                    crawler, provider_number, channel_order_number, week, month, fcode, payment_at, order_state, claim, delivery_at,
-                    delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month, fcode, channel
+                    crawler, provider_number, channel_order_number, week, month, year, fcode, payment_at, order_state, claim, delivery_at,
+                    delivery_complete, order_complete_at, auto_complete_at, channel_order_number, week, month, year, fcode, channel
                 )
                 cursor.execute(sql, values)
                 print(sql, values)
@@ -267,6 +270,7 @@ def insertDB():
                     update_date,
                     week,
                     month,
+                    year,
                     is_deal,
                     ssg_fees,
                     gmarket_fees,
@@ -278,10 +282,10 @@ def insertDB():
                     tmon_fees,
                     g9_fees
                     ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE confirm = %s, state = %s, product_name = %s,
                     category = %s, category_number = %s, price =%s, start_date = %s, end_date = %s,
-                    create_date = %s, update_date = %s, week = %s, month = %s, is_deal = %s,
+                    create_date = %s, update_date = %s, week = %s, month = %s, year= %s, is_deal = %s,
                     ssg_fees = %s, gmarket_fees = %s, auction_fees = %s, 11st_fees = %s,
                     coupang_fees = %s, interpark_fees = %s, wemakeprice_fees = %s, tmon_fees = %s, g9_fees = %s
                     '''
@@ -336,9 +340,11 @@ def insertDB():
                     monthStr = datetime.strptime(create_date, '%Y-%m-%d')
                     week = monthStr.isocalendar()[1]
                     month = monthStr.month
+                    year = monthStr.year
                 else:
                     week = None
                     month = None
+                    year = None
 
                 values = (
                     confirm,
@@ -357,6 +363,7 @@ def insertDB():
                     update_date,
                     week,
                     month,
+                    year,
                     is_deal,
                     ssg_fees,
                     gmarket_fees,
@@ -379,6 +386,7 @@ def insertDB():
                     update_date,
                     week,
                     month,
+                    year,
                     is_deal,
                     ssg_fees,
                     gmarket_fees,

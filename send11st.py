@@ -26,6 +26,7 @@ stOrderResultLists = []
 eabyOrderResultLists = []
 stReturnResultLists = []
 newReturnResultLsits = []
+wpNewResultLists = []
 
 
 def findFile(filename, listName):
@@ -45,6 +46,7 @@ for fileResult in fileResults:
     findFile('ebayOrderResult', eabyOrderResultLists)
     findFile('channelReturnResult', stReturnResultLists)
     findFile('channelReturnMissMatch', newReturnResultLsits)
+    findFile('wpNewResult', wpNewResultLists)
 
 slack = Slacker(config.SLACK_API['token'])
 
@@ -86,6 +88,11 @@ try:
     checkFileToSend(newReturnResultLsits, 'channelReturnMissMatch_')
 except Exception as ex:
     print(ex)
+try:
+    checkFileToSend(wpNewResultLists, 'wpNewResult_')
+except Exception as ex:
+    print(ex)
+
 
 # print(cancelResultLists, stOrderResultLists, eabyOrderResultLists)
 # maxCancel = max(cancelResultLists)
