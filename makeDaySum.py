@@ -55,8 +55,9 @@ def noneCheck(a, b):
         return None
 
 
-startMonth = 11
-endMonth = 12 + 1
+startMonth = 1
+endMonth = startMonth + 1
+year = 2020
 
 for i in range(startMonth, endMonth):
     sql = f'''
@@ -104,7 +105,7 @@ for i in range(startMonth, endMonth):
     sum(tmon_qty),
     sum(tmon_sales),
     sum(tmon_cogs)
-    FROM sell_to_channel WHERE month = {i} GROUP BY date
+    FROM sell_to_channel WHERE month = {i} and year = {year} GROUP BY date
     '''
 
     cursor.execute(sql)
@@ -135,7 +136,7 @@ for i in range(startMonth, endMonth):
     sum(g9_refund_qty),
     sum(tmon_refund_amount),
     sum(tmon_refund_qty)
-    FROM sell_to_channel WHERE month = {i} GROUP BY month
+    FROM sell_to_channel WHERE month = {i} and year = {year} GROUP BY month
     '''
 
     cursor.execute(refundSql)
@@ -1105,7 +1106,7 @@ weekSql = f'''
     sum(tmon_qty),
     sum(tmon_sales),
     sum(tmon_cogs)
-    FROM sell_to_channel where month >= {startMonth} GROUP BY week
+    FROM sell_to_channel where month >= {startMonth} and year = {year} GROUP BY week
 '''
 weekStartRow = ws.max_row + 1
 

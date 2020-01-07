@@ -232,6 +232,12 @@ for wpResult in wpResultLists:
         # 취소:처리완료 / 취소승인
         # 반품:수거중 / 반품신청
         # 교환:수거중 / 교환신청
+        # 비플로우) 배송완료 / 외부채널 : 반품철회
+        # 비플로우) 반품:처리완료 / 외부채널 : 반품완료
+        # 비플로우) 반품:처리완료 / 외부채널 : 반품승인
+        # 비플로우) 반품:수거중 / 외부채널 : 반품신청
+        # 비플로우) 배송완료 / 외부채널 : 취소거부
+        # 비플로우) 배송완료 / 외부채널 : 취소철회
 
         if claim_state == '취소:처리완료' and wpStatus == '취소완료':
             continue
@@ -243,7 +249,11 @@ for wpResult in wpResultLists:
             continue
         elif claim_state == '반품:수거중' and wpStatus == '반품신청':
             continue
+        elif claim_state == '반품:처리완료' and wpStatus == '반품완료' or wpStatus == '반품승인':
+            continue
         elif claim_state == '교환:수거중' and wpStatus == '교환신청':
+            continue
+        elif status == '배송완료' and wpStatus == '반품철회' or wpStatus == '취소거부' or wpStatus == '취소철회':
             continue
         elif wpStatus == '취소신청':
             ws.cell(row=no, column=1).value = productOrderNo

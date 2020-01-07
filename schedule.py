@@ -24,7 +24,7 @@ def checkSchedule():
         print('zzzzzzzzzz..............')
         pass
     elif makeWeek != 5 or makeWeek != 6:
-        if makeTime == '11:00' or makeTime == '14:30' or makeTime == '16:25' or makeTime == '18:30':
+        if makeTime == '11:00' or makeTime == '14:30' or makeTime == '16:00':
             runFile('11stCancel.py')
             runFile('returnCheck.py')
             runFile('ebayReturnCheck')
@@ -42,8 +42,9 @@ def checkSchedule():
         elif makeTime == '12:30' or makeTime == '17:30':
             runFile('downloadBflow.py')
             runFile('insertChnnelSell.py')
-        elif makeTime == '10:30' or  makeTime == '13:30' or makeTime == '16:30' or makeTime == '19:00':
+        elif makeTime == '10:30' or  makeTime == '13:30' or makeTime == '18:30':
             runFile('esmFees.py')
+            runFile('11stProfit.py')
         else:
             print("week : ", makeWeek, "/ time : ", makeTime)
     

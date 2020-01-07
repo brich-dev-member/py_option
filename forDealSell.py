@@ -105,8 +105,9 @@ wa = wb.create_sheet('주간통계')
 
 newRow = 1
 
-startWeek = 47
+startWeek = 1
 endWeek = startWeek + 5
+year = 2020
 for week in range(startWeek, endWeek):
     weekSql = f'''
             select s.`week`, min(s.payment_at), max(s.payment_at), s.`channel`,
@@ -114,7 +115,7 @@ for week in range(startWeek, endWeek):
             sum(c.`brich_calculate`), sum(c.`channel_calculate`), sum(c.`margin`)
             from sell as s left join `product` as p on s.`product_number` = p.`product_number` 
             left join `calculate` as c on s.`product_order_number` = c.`product_order_number`
-            where p.`is_deal` = 1 and s.week = {week} group by s.`channel`, s.`week`;
+            where p.`is_deal` = 1 and s.week = {week} and s.year = {year} group by s.`channel`, s.`week`;
             '''
     cursor.execute(weekSql)
     weekDataSet = cursor.fetchall()

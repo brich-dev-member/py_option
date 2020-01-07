@@ -121,13 +121,15 @@ for returnData in returnMerges:
     # 11번가 반품 비용처리 payment_case = 박스에동봉 / 판매자에게 직접송급은 별도의 리스트 관리
         lastWeek = parse(weekNow)
         refundDate = channel_return_request_at
-        print(lastWeek.date(), refundDate.date())
+        # print(lastWeek.date(), refundDate.date())
 
 
 
-        if claim_state == '반품:수거중' and refund_state == '반품신청' or refund_state == '반품요청':
-            if refundDate.date() > lastWeek.date():
-                pass
+        if claim_state == '반품:수거중' and refund_state == '반품요청':
+            if refundDate is None:
+                continue
+            elif refundDate.date() > lastWeek.date():
+                continue
             else:
                 ws.cell(row=no, column=1).value = product_order_number
                 ws.cell(row=no, column=2).value = return_number
@@ -147,8 +149,10 @@ for returnData in returnMerges:
 
                 no += 1
         elif claim_state == '교환:수거중' and refund_state == '교환신청' or refund_state == '교환요청':
-            if refundDate.date() > lastWeek.date():
-                pass
+            if refundDate is None:
+                continue
+            elif refundDate.date() > lastWeek.date():
+                continue
             else:
                 ws.cell(row=no, column=1).value = product_order_number
                 ws.cell(row=no, column=2).value = return_number
@@ -168,7 +172,11 @@ for returnData in returnMerges:
 
                 no += 1
         elif claim_state == '반품:처리완료' and refund_state == '환불승인완료' or refund_state == '반품완료':
-            pass
+            continue
+        elif refund_state == '반품신청' and claim_state == '반품:처리완료' or claim_state == '반품:수거중' or claim_state == '반품:수거완료':
+            continue
+        elif claim_state == '교환:수거완료' and refund_state == '교환신청':
+            continue
         elif channel == 'wemakprice' and refund_state == '반품철회' or refund_state == '교환거부' or refund_state == '교환철회':
             ws.cell(row=no, column=1).value = product_order_number
             ws.cell(row=no, column=2).value = return_number
@@ -206,7 +214,7 @@ for returnData in returnMerges:
 
             no += 1
     elif bflowStatus['success'] is False:
-        pass
+        continue
 result = config.ST_LOGIN['excelPath'] + 'channelReturnResult_' + totalNow + "_" + now + '.xlsx'
 wb.save(result)
 wb.close()

@@ -242,18 +242,18 @@ for idx, row in enumerate(ws.iter_rows(min_row=2, max_row=maxRow )):
     else:
         security_refund = None
     security_refund_at = None
-    return_request_at = row[10].value
-    return_complete_at = row[15].value
-    return_delivery_case = replacenone(row[27].value)
+    return_request_at = row[11].value
+    return_complete_at = row[12].value
+    return_delivery_case = replacenone(row[30].value)
     return_delivery_fees = replaceTextToInt(row[8].value)
     return_request_case = None
     channel_delivery_fees = None
     return_respons = replacenone(row[5].value)
     payment_case = replacenone(row[9].value)
-    return_qty = replaceint(row[21].value)
+    return_qty = replaceint(row[23].value)
     refund_state = replacenone(row[2].value)
-    product_name = replacenone(row[17].value)
-    product_option = replacenone(row[22].value)
+    product_name = replacenone(row[19].value)
+    product_option = replacenone(row[24].value)
     detailCode = replacenone(row[49].value)
     if detailCode is not None:
         changeCode = "_" + detailCode + "_"
@@ -263,10 +263,10 @@ for idx, row in enumerate(ws.iter_rows(min_row=2, max_row=maxRow )):
         else:
             fcode = makeCode.group()
 
-    delivery_company = replacenone(row[29].value)
-    delivery_code = replacenone(row[30].value)
-    return_delivery_arrive_at = row[13].value
-    return_hold_at = row[14].value
+    delivery_company = replacenone(row[9].value)
+    delivery_code = replacenone(row[10].value)
+    return_delivery_arrive_at = row[11].value
+    return_hold_at = row[17].value
     return_delivery_complete_at = None
     claim_state = '반품'
 

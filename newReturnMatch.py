@@ -25,12 +25,12 @@ db = pymysql.connect(
 cursor = db.cursor()
 
 sql = '''
-    select c.`order_number`, c.`refund_state`,c.`return_request_at`,
-    c.`return_complete_at`, c.`return_respons`, c.`payment_case`, c.`delivery_company`,
-    c.`delivery_code`,c.`return_delivery_arrive_at`, c.`fcode`, c.`channel`
-    from `channel_returns` as c 
-    where c.`refund_state` is not NULL
-    and not c.`refund_state` in ('반품완료'); 
+    select `order_number`, `refund_state`,`return_request_at`,
+    `return_complete_at`, `return_respons`, `payment_case`, `delivery_company`,
+    `delivery_code`,`return_delivery_arrive_at`, `fcode`, `channel`
+    from `channel_returns` 
+    where `refund_state` is not NULL
+    and not `refund_state` in ('반품완료'); 
     '''
 
 cursor.execute(sql)

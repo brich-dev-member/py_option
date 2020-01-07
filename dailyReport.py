@@ -19,8 +19,8 @@ db = pymysql.connect(
     autocommit=True)
 cursor = db.cursor()
 
-reportYear = 2019
-reportMonth = 11, 12
+reportYear = 2019, 2020
+reportMonth = 12, 1
 
 weekSql =f'''
         SELECT 
@@ -87,7 +87,7 @@ weekSql =f'''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year = {reportYear} GROUP BY week
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year in ({reportYear[0]},{reportYear[1]}) GROUP BY week
         '''
 
 cursor.execute(weekSql)
@@ -338,7 +338,7 @@ monthSql =f'''
         sum(ssg_cogs),
         sum(ssg_refund_amount),
         sum(ssg_refund_qty)
-        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year = {reportYear} GROUP BY month
+        FROM sell_to_channel where month in ({reportMonth[0]},{reportMonth[1]}) and year in ({reportYear[0]},{reportYear[1]}) GROUP BY month
         '''
 
 cursor.execute(monthSql)

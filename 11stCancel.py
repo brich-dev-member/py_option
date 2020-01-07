@@ -246,9 +246,11 @@ orderSql = '''
         quantity,
         payment_at,
         channel,
-        fcode
+        fcode,
+        channel_amount,
+        channel_calculate
         ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON DUPLICATE KEY UPDATE state = %s
         '''
 maxRow = ws.max_row - 2
@@ -262,6 +264,11 @@ for row in ws.iter_rows(min_row=3, max_row=maxRow):
     quantity = replaceint(row[8].value)
     payment_at = row[5].value
     channel = '11st'
+    channel_product_amount = (row[10].value).replace(',','')
+    channel_option_amount = (row[11].value).replace(',','')
+    channel_amount = str(int(channel_product_amount) + int(channel_option_amount))
+
+    channel_calculate = row[17].value
     if product_option is None:
         fcode = None
     else:
@@ -276,6 +283,8 @@ for row in ws.iter_rows(min_row=3, max_row=maxRow):
         payment_at,
         channel,
         fcode,
+        channel_amount,
+        channel_calculate,
         state
 
     )
@@ -584,6 +593,9 @@ for ebayOrderRow in ebayOrderRows:
             print('skip')
             continue
         elif state == '판매자송금':
+            print('skip')
+            continue
+        elif state == '환불예정' and orderState == '결제취소':
             print('skip')
             continue
         elif state == '반품보류' or state == '미수취신고':
