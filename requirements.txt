@@ -1,3 +1,5 @@
+beautifulsoup
+bs4
 slacker
 pyexcel
 python-dateutil

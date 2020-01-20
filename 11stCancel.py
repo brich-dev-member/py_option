@@ -191,7 +191,12 @@ for row in ws.iter_rows(min_row=7, max_row=maxRow):
     if product_option is None:
         fcode = None
     else:
-        fcode = rex.search(product_option).group()
+        try:
+            fcode = rex.search(product_option).group()
+        except Exception as ex:
+            fcode = None
+            print(product_option)
+            print(ex)
 
     values = (
         state,
@@ -272,7 +277,12 @@ for row in ws.iter_rows(min_row=3, max_row=maxRow):
     if product_option is None:
         fcode = None
     else:
-        fcode = rex.search(product_option).group()
+        try:
+            fcode = rex.search(product_option).group()
+        except Exception as ex:
+            fcode = None
+            print(product_option)
+            print(ex)
     orderValues = (
         state,
         channel_order_number,

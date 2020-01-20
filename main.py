@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, request, send_file
 import openpyxl
 from itertools import permutations, combinations_with_replacement
 from datetime import datetime
+from styleWindowDealList import styleWindowDealList
 
 app = Flask(__name__)
 
@@ -15,6 +16,23 @@ def hello_world():
 def option():
     return render_template('option.html')
 
+@app.route('/dealList')
+def dealList():
+    return render_template('dealList.html')
+
+@app.route('/dealList/upload', methods=['POST', 'GET'])
+def dealListUpdate():
+    if request.method == 'POST':
+        swPost = request.form
+        result = styleWindowDealList(swPost['providerNumber'],swPost['sort'],swPost['count'])
+        print(result)
+        return send_file(
+            result,
+            as_attachment=True,
+            attachment_filename=result, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    else:
+        return redirect('/dealList')
 
 @app.route('/option/upload', methods=['POST', 'GET'])
 def option_slice():
