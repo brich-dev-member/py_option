@@ -1405,7 +1405,7 @@ for weekRow in weekRows:
 makeToday = datetime.today()
 
 now = makeToday.strftime("%m%d_%H%M")
-result = "2019_운영지표" + "_" + now + ".xlsx"
+result = "2020_운영지표" + "_" + now + ".xlsx"
 print(result)
 wb.save(result)
 cursor.close()

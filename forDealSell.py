@@ -195,7 +195,7 @@ for week in range(startWeek, endWeek):
 
 makeToday = datetime.today()
 now = makeToday.strftime("%m%d_%H%M")
-result = "2019_딜운영_" + now + ".xlsx"
+result = "2020_딜운영_" + now + ".xlsx"
 wb.save(result)
 
 cursor.close()

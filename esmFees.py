@@ -101,6 +101,16 @@ for idx, findProduct in enumerate(findProducts):
             print('팝업없음')
         time.sleep(1)
         shop = driver.find_element_by_xpath('//*[@id="contents"]/div[1]/p/img').get_attribute('alt')
+        sellerPriceInput = driver.find_element_by_xpath('//*[@id="txtGoodsPrice"]')
+        sellerPrice = sellerPriceInput.get_attribute('value').replace(",", "")
+        sellerDiscountInput = driver.find_element_by_xpath('//*[@id="SYIStep3_SellerDiscount_DiscountAmt"]')
+        sellerDiscount = sellerDiscountInput.get_attribute('value').replace(",", "")
+        sellerTotalPrice = int(sellerPrice) - int(sellerDiscount)
+        sellerFees = int(sellerTotalPrice) * 0.87
+        sellerSupplyPrice = sellerFees + int(sellerDiscount)
+        lastFee = round((1 - (int(sellerSupplyPrice)/int(sellerPrice))) * 100, 2)
+
+        print(sellerPrice, sellerDiscount ,sellerTotalPrice, sellerFees, sellerSupplyPrice, lastFee)
         print('채널 : ' + shop)
         if shop == 'A 옥션':
             fees = driver.find_element_by_xpath('//*[@id="iacSellingFeeRate"]').text
@@ -110,7 +120,7 @@ for idx, findProduct in enumerate(findProducts):
         dealFees = float(fees)
         print('수수료 : ' + fees)
 
-        if ebayState == '판매중지' or dealFees < 4:
+        if ebayState == '판매중지' or dealFees < lastFee + 1:
             print('정상 또는 판매중지')
             # slack.chat.post_message(
             #     channel='개발이슈없어요',
