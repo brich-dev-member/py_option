@@ -14,7 +14,14 @@ def makeQoo10Product(productNumber):
     shortTitle = productJson['name'] # 최대 글자 20자
     itemDetailHeader = '브리치 헤더'
     itemDetailFooter = '브리치 푸터'
-    briefDescription = '상품 간략설명'
+
+    tags = []
+    tagLists = productJson['manual_tags']
+    for tag in tagLists:
+        tags.append(tag['name'])
+    print(tags)
+        
+    briefDescription = '상품 간략설명' #외부 검색시 키워드 브리치 키워드 매칭 
     imageURL = productJson['images'][0]['url']
     print(imageURL)
     sellPrice = productJson['discounted_price']
@@ -37,7 +44,7 @@ def makeQoo10Product(productNumber):
         stock = value['place_stock']['stock']
         optionPrice = value['price']
         for idx, title in enumerate(optionTitle):
-            print(title, idx)
+            # print(title, idx)
             optValue = 'value' + str(idx +1)
             optionResult.append(title)
             optionResult.append(value[optValue])
@@ -53,14 +60,14 @@ def makeQoo10Product(productNumber):
     brandNo = productJson['main_brand']['code'] # 메이커 번호
     productModelName = productJson['custom_code'] # 상품 모델 번호
     retailPrice = productJson['price'] #..
-    originType = '2'
-    placeOfOrigin = '대한민국' 
+    originType = '2' # 해외
+    placeOfOrigin = '대한민국' # 국가명
     industrialCode = '산업코드' #JAN CODE
-    itemCondition = '1'
+    itemCondition = '1' # 1 신상품
     manufactureDate = '' #재조연월일 YYYY/MM
     adultProduct = 'N'
-    asInfo = '' #as 인포
-    availableDate = '14'
+    asInfo = '' #as 인포 브리치 공통
+    availableDate = '14' #배송예정일은 14일
     gift = ''
 
     subImgaes = productJson['sub_images']
@@ -74,5 +81,3 @@ def makeQoo10Product(productNumber):
     multiShippingRate = '' # 옵션배송비 코드
 
 makeQoo10Product(756041703)
-
-# Seller Code	Status	2nd Cat Code	Item Name	Item Description	Short Title	Item Detail Header	Item Detail Footer	Brief Description	Image URL	Sell Price	Sell Qty	Shipping Group No	Item Weight	Option Info	Inventory Info	Maker No	Brand No	Product Model Name	Retail Price	Origin Type	Place of Origin	Industrial Code	Item Condition	Manufacture Date	Adult Product Y/N	A/S Info	Available Date	Gift	Additional Item Image	Inventory Cover Image	Multi Shipping Rate
