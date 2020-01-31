@@ -1,15 +1,14 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.ui import Select
 import config
 import time
 import os
-from datetime import date
 from datetime import datetime
 import pyexcel as p
 import pymysql
 from openpyxl import load_workbook
-from tqdm import tqdm
 import dateutil.relativedelta
 import re
 from openpyxl import Workbook
@@ -20,8 +19,7 @@ display = Display(visible=0, size=(1200, 900))
 display.start()
 
 
-
-def replacedate(text):
+def replace_date(text):
     if text is None:
         return
     else:
@@ -29,7 +27,7 @@ def replacedate(text):
         return text.strip()
 
 
-def replacenone(text):
+def replace_none(text):
     if text is None:
         return
     else:
@@ -37,12 +35,13 @@ def replacenone(text):
         return text.strip()
 
 
-def replaceint(text):
+def replace_int(text):
     if text is None:
         return
     else:
         text = int(text)
         return text
+
 
 rex = re.compile('_F[0-9]+')
 
@@ -53,36 +52,33 @@ totalNow = makeToday.strftime("%Y-%m-%d")
 makeLastMonth = makeToday - dateutil.relativedelta.relativedelta(months=1)
 endNow = makeLastMonth.strftime("%Y-%m-%d")
 
-def changeFileToXlsx(originalName, resultName):
-    stOriExcel = config.ST_LOGIN['excelPath'] + originalName
-    stResultExcel = config.ST_LOGIN['excelPath'] + resultName + now + '.xls'
-    stResultXlsx = config.ST_LOGIN['excelPath'] + resultName + now + '.xlsx'
-    
-    os.rename(stOriExcel, stResultExcel)
 
-    p.save_book_as(file_name=stResultExcel, dest_file_name=stResultXlsx)
-    os.remove(stResultExcel)
-    return stResultXlsx
+def change_file_to_xlsx(original_name, result_name):
+    st_ori_excel = config.ST_LOGIN['excelPath'] + original_name
+    st_result_excel = config.ST_LOGIN['excelPath'] + result_name + now + '.xls'
+    st_result_xlsx = config.ST_LOGIN['excelPath'] + result_name + now + '.xlsx'
 
-def findSelect(xpath, value):
+    os.rename(st_ori_excel, st_result_excel)
+
+    p.save_book_as(file_name=st_result_excel, dest_file_name=st_result_xlsx)
+    os.remove(st_result_excel)
+    return st_result_xlsx
+
+
+def find_select(xpath, value):
     el = Select(driver.find_element_by_xpath(xpath))
     el.select_by_value(value)
 
 
-
 options = Options()
-# options.add_argument('--headless')
+
 options.add_argument("disable-gpu")
 prefs = {
     "download.default_directory": config.ST_LOGIN['excelPath'],
     "directory_upgrade": True
 }
 options.add_experimental_option("prefs", prefs)
-driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
-
-# driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-# params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': "/path/to/download/dir"}}
-# command_result = driver.execute("send_command", params)
+driver: WebDriver = webdriver.Chrome(executable_path='/usr/bin/chromedriver', options=options)
 
 driver.get('https://login.11st.co.kr/auth/front/selleroffice/login.tmall')
 
@@ -94,9 +90,9 @@ print('login')
 driver.get('https://soffice.11st.co.kr/escrow/OrderCancelManageList2nd.tmall')
 time.sleep(5)
 
-findSelect('//select[@id="key"]', '02')
-findSelect('//select[@id="shDateType"]', '07')
-findSelect('//select[@id="sltDuration"]', 'TODAY')
+find_select('//select[@id="key"]', '02')
+find_select('//select[@id="shDateType"]', '07')
+find_select('//select[@id="sltDuration"]', 'TODAY')
 time.sleep(2)
 driver.find_element_by_xpath('//*[@id="search_area"]/form/div[1]/div[2]/div[2]/div[2]/div/button[1]').click()
 time.sleep(3)
@@ -120,8 +116,8 @@ driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
 time.sleep(60)
 driver.close()
 
-cancelFile = changeFileToXlsx('39731068_sellListlistType.xls', '11st_Cancel_')
-logiFile = changeFileToXlsx('39731068_logistics.xls', '11st_logi_')
+cancelFile = change_file_to_xlsx('39731068_sellListlistType.xls', '11st_Cancel_')
+logiFile = change_file_to_xlsx('39731068_logistics.xls', '11st_logi_')
 
 path = cancelFile
 
@@ -170,24 +166,24 @@ maxRow = ws.max_row - 2
 print(maxRow)
 
 for row in ws.iter_rows(min_row=7, max_row=maxRow):
-    state = replacenone(row[1].value)
-    channel_order_number = replacenone(row[2].value)
-    channel_order_list = replaceint(row[3].value)
+    state = replace_none(row[1].value)
+    channel_order_number = replace_none(row[2].value)
+    channel_order_list = replace_int(row[3].value)
     claim_request = row[4].value
     claim_complete = row[5].value
-    product_name = replacenone(row[6].value)
-    product_option = replacenone(row[7].value)
-    quantity = replaceint(row[8].value)
-    order_amount = replaceint(row[13].value)
-    cancel_reason = replacenone(row[16].value)
-    cancel_detail_reason = replacenone(row[17].value)
-    cancel_response = replacenone(row[18].value)
-    add_delivery_fees = replaceint(row[19].value)
-    cancel_complete_date = replacedate(row[20].value)
+    product_name = replace_none(row[6].value)
+    product_option = replace_none(row[7].value)
+    quantity = replace_int(row[8].value)
+    order_amount = replace_int(row[13].value)
+    cancel_reason = replace_none(row[16].value)
+    cancel_detail_reason = replace_none(row[17].value)
+    cancel_response = replace_none(row[18].value)
+    add_delivery_fees = replace_int(row[19].value)
+    cancel_complete_date = replace_date(row[20].value)
     payment_at = row[31].value
-    product_amount = replaceint(row[33].value)
-    product_option_amount = replaceint(row[34].value)
-    cancel_complete_user = replacenone(row[37].value)
+    product_amount = replace_int(row[33].value)
+    product_option_amount = replace_int(row[34].value)
+    cancel_complete_user = replace_none(row[37].value)
     if product_option is None:
         fcode = None
     else:
@@ -261,16 +257,16 @@ orderSql = '''
 maxRow = ws.max_row - 2
 
 for row in ws.iter_rows(min_row=3, max_row=maxRow):
-    state = replacenone(row[1].value)
-    channel_order_number = replacenone(row[2].value)
-    channel_order_list = replaceint(row[3].value)
-    product_name = replacenone(row[6].value)
-    product_option = replacenone(row[7].value)
-    quantity = replaceint(row[8].value)
+    state = replace_none(row[1].value)
+    channel_order_number = replace_none(row[2].value)
+    channel_order_list = replace_int(row[3].value)
+    product_name = replace_none(row[6].value)
+    product_option = replace_none(row[7].value)
+    quantity = replace_int(row[8].value)
     payment_at = row[5].value
     channel = '11st'
-    channel_product_amount = (row[10].value).replace(',','')
-    channel_option_amount = (row[11].value).replace(',','')
+    channel_product_amount = row[10].value.replace(',', '')
+    channel_option_amount = row[11].value.replace(',', '')
     channel_amount = str(int(channel_product_amount) + int(channel_option_amount))
 
     channel_calculate = row[17].value
@@ -323,7 +319,7 @@ driver.find_element_by_xpath('//*[@id="btnSearch"]').click()
 driver.find_element_by_xpath('//*[@id="contents"]/div/div[3]/a').click()
 time.sleep(15)
 
-gmarketFile = changeFileToXlsx('findcustomer_' + totalNow +'.xls', 'gmarket_state_')
+gmarketFile = change_file_to_xlsx('findcustomer_' + totalNow + '.xls', 'gmarket_state_')
 
 path = gmarketFile
 
@@ -351,13 +347,13 @@ orderSql = '''
 maxRow = ws.max_row - 2
 
 for row in ws.iter_rows(min_row=2):
-    state = replacenone(row[12].value)
-    channel_order_number = replacenone(row[2].value)
-    channel_order_list = replacenone(row[3].value)
-    product_name = replacenone(row[4].value)
+    state = replace_none(row[12].value)
+    channel_order_number = replace_none(row[2].value)
+    channel_order_list = replace_none(row[3].value)
+    product_name = replace_none(row[4].value)
     product_option = None
-    quantity = replaceint(row[6].value)
-    payment_at = replacenone(row[7].value)
+    quantity = replace_int(row[6].value)
+    payment_at = replace_none(row[7].value)
     if channel_order_list[0] == 'B':
         channel = 'auction'
     else:
@@ -413,26 +409,26 @@ for cancelNow in cancelNowTotal:
         product_order_number = bflowStatus['message']['orderItemOptionId']
         order_number = bflowStatus['message']['orderCode']
         orderState = bflowStatus['message']['status']
-        
+
         if len(bflowStatus['message']['claims']) > 0:
             claimType = bflowStatus['message']['claims'][0]['claimType']
             claimStatus = bflowStatus['message']['claims'][0]['claimStatus']
             if claimType is None:
-                    claim_state = None
+                claim_state = None
             elif claimType is 'cancel':
-                    claimType = '취소'
-                    claim_state = claimType + ":" + claimStatus
+                claimType = '취소'
+                claim_state = claimType + ":" + claimStatus
             elif claimType is 'return':
-                    claimType = '반품'
-                    claim_state = claimType + ":" + claimStatus
+                claimType = '반품'
+                claim_state = claimType + ":" + claimStatus
             elif claimType is 'exchange':
-                    claimType = '교환'
-                    claim_state = claimType + ":" + claimStatus
+                claimType = '교환'
+                claim_state = claimType + ":" + claimStatus
             else:
-                    claim_state = claimType + ":" + claimStatus
+                claim_state = claimType + ":" + claimStatus
         else:
             claim_state = None
-    
+
         ws.cell(row=1, column=1).value = '상품주문번호'
         ws.cell(row=1, column=2).value = '주문번호'
         ws.cell(row=1, column=3).value = '외부채널주문번호'
@@ -476,9 +472,8 @@ for optionRow in optionRows:
     idNo = optionRow[0]
     fcodeText = optionRow[1]
     channelOrderNumber = optionRow[2]
-    if fcodeText is None:
-        fcode = None
-    elif fcodeText is not None:
+    fcode = None
+    if fcodeText is not None:
         fcodeText = rex.search(optionRow[1])
         fcode = fcodeText.group()
 
@@ -512,7 +507,6 @@ for ebayOrderRow in ebayOrderRows:
     productName = ebayOrderRow[1]
     state = ebayOrderRow[2]
     channel = ebayOrderRow[3]
-
 
     bflowStatus = requestStausChannel(channelOrderNumber, channel)
 
@@ -555,35 +549,35 @@ for ebayOrderRow in ebayOrderRows:
         # 비플로우 반품 / 채널상태 반품보류 , 반품요청 = > 불필요
         # 비플로우 배송준비 / 채널 상태 배송지연 / 발송예정 = > 불필요
         # 비플로우 배송지연 / 채널상태 배송지연 / 발송예정  = > 불필요
-        if state == '교환수거완료'\
-                or state == '교환수거중'\
-                or state == '교환완료'\
-                or state == '배송중'\
-                or state == '교환요청'\
-                or state == '구매결정완료'\
+        if state == '교환수거완료' \
+                or state == '교환수거중' \
+                or state == '교환완료' \
+                or state == '배송중' \
+                or state == '교환요청' \
+                or state == '구매결정완료' \
                 and orderState == '교환':
             print('skip')
             continue
-        elif state == '반품수거완료'\
-                or state == '반품수거중'\
-                or state == '반품완료'\
-                or state == '반품보류'\
-                or state == '반품요청'\
+        elif state == '반품수거완료' \
+                or state == '반품수거중' \
+                or state == '반품완료' \
+                or state == '반품보류' \
+                or state == '반품요청' \
                 and orderState == '반품':
             print('skip')
             continue
-        elif state == '입금확인'\
-                or state == '주문확인'\
-                or state == '배송지연/발송예정'\
-                and orderState == '배송준비'\
+        elif state == '입금확인' \
+                or state == '주문확인' \
+                or state == '배송지연/발송예정' \
+                and orderState == '배송준비' \
                 or orderState == '결제확인':
             print('skip')
             continue
-        elif state == '취소완료'\
-                or state == '환불완료'\
-                or state == '취소요청'\
-                or state == '취소중'\
-                or state == '반품완료'\
+        elif state == '취소완료' \
+                or state == '환불완료' \
+                or state == '취소요청' \
+                or state == '취소중' \
+                or state == '반품완료' \
                 and orderState == '결제취소':
             print('skip')
             continue

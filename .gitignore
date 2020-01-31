@@ -27,3 +27,4 @@ py_option.conf
 uwsgi_params
 wsgi.ini
 log.log
+/venv/
