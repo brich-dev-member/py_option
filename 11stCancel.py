@@ -1,3 +1,11 @@
+#
+# 11번가에서 취소 목록을 불러와서 별도의 엑셀파일로 정리 후, 슬랙으로 던져주는 코드
+#
+# 1. 외부채널: 취소신청 / 비플로우: 결제후 출고전 단계인 값은 취소요청으로 변경
+# 2. 비플로우 취소요청이 수집이후 24시간 경과 17시가 되는경우에는 일괄 취소완료로 변경
+# 3. 비플로우 : 취소완료 -> 환불완료 / 외부채널 : 취소, 환불완료로 변경
+#
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -116,7 +124,9 @@ driver.find_element_by_xpath('/html/body/div/div[2]/div[4]/div/a[1]').click()
 time.sleep(60)
 driver.close()
 
+# 취소 신청, 완료 목록 -> 둘 다 필요함
 cancelFile = change_file_to_xlsx('39731068_sellListlistType.xls', '11st_Cancel_')
+# 배송준비 목록 - 외부채널에서 배송준비중인데 우리쪽에서 취소 또는 클레임을 찾으려고... - 발송처리할 내역
 logiFile = change_file_to_xlsx('39731068_logistics.xls', '11st_logi_')
 
 path = cancelFile
