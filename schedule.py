@@ -27,7 +27,7 @@ def checkSchedule():
         if makeTime == '11:00' or makeTime == '14:30' or makeTime == '16:00':
             runFile('11stCancel.py')
             runFile('returnCheck.py')
-            runFile('ebayReturnCheck')
+            runFile('ebayReturnCheck.py')
             runFile('wmpReturn.py')
             runFile('wmpReturnUpdate.py')
             runFile('mergeReturn.py')
