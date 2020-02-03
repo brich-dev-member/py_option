@@ -1,18 +1,14 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import Select
 import config
 import time
 import os
-from datetime import date
 from datetime import datetime
 import pyexcel as p
 import pymysql
 from openpyxl import load_workbook
-from tqdm import tqdm
 import dateutil.relativedelta
 import re
-from openpyxl import Workbook
 from pyvirtualdisplay import Display
 
 display = Display(visible=0, size=(1200, 900))
@@ -41,6 +37,7 @@ def replaceint(text):
     else:
         text = int(text)
         return text
+
 
 # 날짜 모듈
 makeToday = datetime.today()

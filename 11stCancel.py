@@ -309,7 +309,7 @@ for row in ws.iter_rows(min_row=3, max_row=maxRow):
 os.remove(logiFile)
 # 11번가 끝
 
-# 지마켓 시작
+# 지마켓 시작 -- 옥션
 driver.switch_to.window(driver.window_handles[0])
 driver.get('https://www.esmplus.com/Member/SignIn/LogOn')
 driver.find_element_by_xpath('//*[@id="rdoSiteSelect" and @value="GMKT"]').click()
